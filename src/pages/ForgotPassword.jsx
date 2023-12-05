@@ -11,7 +11,7 @@ export default function ForgotPassword() {
   return (
     <section>
       <h1 className="text-3xl text-center mt-6 font-bold">Forgot Password</h1>
-      <div className="flex justify-center flex-wrap items-center px-6 py-12 max-w-6xl"> 
+      <div className="flex justify-center flex-wrap items-center px-6 py-12 max-w-6xl mx-auto"> 
       <div className="md:w-[67%] lg:w-[50%] mb-12 md:mb-6">
       <img src={process.env.PUBLIC_URL + '/img001.jpg'} 
       alt="key"
@@ -36,7 +36,7 @@ export default function ForgotPassword() {
             </p>
           </div>
           <button className="w-full uppercase bg-black rounded text-white px-7 py-3" 
-        type="submit">send Reset password</button> 
+        type="submit">Reset password</button> 
       <div className="flex items-center my-4 before:border-t before:flex-1 before:border-gray-300 after:border-t after:flex-1 after:border-gray-300">
         <p className="text-center
         font-semibold mx-4">OR</p>  

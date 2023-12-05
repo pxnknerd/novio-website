@@ -18,10 +18,28 @@ export default function Header() {
             onClick={()=>navigate("/")} />
             </div>
             <div>
-                <ul className="flex space-x-10">
-                    <li className={`cursor-pointer pt-7 font-semibold border-b-[3px] border-transparent  ${pathMatchRoute("/") && "text-black border-b-black"}`} onClick={()=>navigate("/")}>Home</li>
-                    <li className={`cursor-pointer pt-7 font-semibold border-b-[3px] border-transparent  ${pathMatchRoute("/offers") && "text-black border-b-black"}`}onClick={()=>navigate("/offers")}>Offers</li>
-                    <li className={`cursor-pointer pt-7 font-semibold border-b-[3px] border-transparent  ${pathMatchRoute("/sign-in") && "text-black border-b-black"}`}onClick={()=>navigate("/sign-in")}>Sign In</li>
+                <ul className="flex space-x-10 ">
+                <li
+  className={`cursor-pointer pt-7 ${pathMatchRoute("/home") ? "font-bold text-black border-b-3 border-black" : "font-semibold text-gray-500 border-b-3 border-transparent"}`}
+  onClick={() => navigate("/home")}
+>
+  Home
+</li>
+
+<li
+  className={`cursor-pointer pt-7 ${pathMatchRoute("/Offers") ? "font-bold text-black border-b-3 border-black" : "font-semibold text-gray-500 border-b-3 border-transparent"}`}
+  onClick={() => navigate("/Offers")}
+>
+  Offers
+</li>
+
+<li
+  className={`cursor-pointer pt-7 ${pathMatchRoute("/sign-in") ? "font-bold text-black border-b-3 border-black" : "font-semibold text-gray-500 border-b-3 border-transparent"}`}
+  onClick={() => navigate("/sign-in")}
+>
+  Sign In
+</li>
+
                 </ul>
             </div>
         </header>
