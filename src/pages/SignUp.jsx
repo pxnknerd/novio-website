@@ -94,7 +94,7 @@ export default function SignUp() {
           </div>
           <div className="flex justify-between whitespace-nowrap text-sm sm:text-lg">
             <p className="mb-6">Have an account? 
-              <Link to="/sign-up" className="text-black hover:text-red-700 transition duration-200 ease-in-out font-semibold"> Sign in</Link>
+              <Link to="/sign-in" className="text-black hover:text-red-700 transition duration-200 ease-in-out font-semibold"> Sign in</Link>
             </p>
             <p>
               <Link to="/forgot-password" className="text-black hover:text-red-700 transition duration-200 ease-in-out font-semibold"> Forgot Password?</Link>
