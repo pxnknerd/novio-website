@@ -33,8 +33,8 @@ export default function Header() {
             <div>
                 <ul className="flex space-x-10 ">
                 <li
-  className={`cursor-pointer pt-7 ${pathMatchRoute("/home") ? "font-bold text-black border-b-3 border-black" : "font-semibold text-gray-500 border-b-3 border-transparent"}`}
-  onClick={() => navigate("/home")}
+  className={`cursor-pointer pt-7 ${pathMatchRoute("/") ? "font-bold text-black border-b-3 border-black" : "font-semibold text-gray-500 border-b-3 border-transparent"}`}
+  onClick={() => navigate("/")}
 >
   Home
 </li>
