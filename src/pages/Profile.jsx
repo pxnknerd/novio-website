@@ -1,10 +1,12 @@
 
 import { React, useState} from "react"
 import { getAuth, updateProfile } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "react-toastify";
+import { HiHome } from "react-icons/hi";
+
 
 export default function Profile() {
   const auth = getAuth();
@@ -59,7 +61,7 @@ export default function Profile() {
           value={name} 
           disabled={!changeDetail} 
           onChange={onChange} 
-          className={`mb-6 w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition ease-in-out ${changeDetail && "bg-gray-200 focus:bg-red-100" }`}/> 
+          className={`mb-6 w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded shadow-lg transition ease-in-out ${changeDetail && "bg-gray-200 focus:bg-red-100" }`}/> 
          
           {/*Email input*/}
 
@@ -68,7 +70,7 @@ export default function Profile() {
         id="email" 
         value={email} 
         disabled 
-        className="mb-6 w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition ease-in-out"/> 
+        className="mb-6 w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded shadow-lg transition ease-in-out"/> 
           
          
           <div className="flex justify-between whitespace-nowrap mb-6 text-sm sm:text-lg">
@@ -83,6 +85,13 @@ export default function Profile() {
             <p onClick={onLogout} className="text-black font-semibold hover:text-gray-300 transition ease-in-out duration-200 cursor-pointer">Sign Out</p>
           </div>
         </form>
+        <button type="submit" className="w-full bg-black text-white uppercase px-7 py-3 text-sm font-medium shaddow-md hover:opacity-75 rounded transition duration-250 ease-in-out">
+          <Link to = "/create-listing" className="flex justify-center items-center ">
+          <HiHome className=" mr-2 text-3xl rounded-full " />
+          Sell or rent your home
+          </Link>
+        
+        </button>
       </div>
     </section>
     </>
