@@ -23,7 +23,7 @@ export default function Header() {
     }
   return (
     <div className="bg-white border-b-[22px] border-black p-4 sticky top-0 z-40">
-        <header className=" flex justify-between items-center px-3 max-w-5xl mx-auto">
+        <header className=" flex sm:flex  justify-between items-center px-3 max-w-5xl mx-auto">
             <div>
             <img src={process.env.PUBLIC_URL + '/novioLogoB.png'} 
             alt="Logo" 
