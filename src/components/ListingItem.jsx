@@ -5,9 +5,9 @@ import { MdDelete, MdEdit } from "react-icons/md";
 
 
 export default function ListingItem({ listing, id, onEdit, onDelete}) {
-    return <li className="relative border-2 border-black bg-white flex flex-col justify-between items-center hover:shadow-xl rounded-md overflow-hidden transition-shadow duration-150 m-[10px]">
+    return <li className="relative border-[3px] border-black bg-white flex flex-col justify-between items-center shadow-lg hover:shadow-xl rounded-md overflow-hidden transition-scale-shadow ease-in-out hover:scale-105 duration-200 m-[10px]">
         <Link className="contents" to={`/category/${listing.type}/${id}`}>
-            <img className="h-[300px] w-full object-cover hover:scale-105 transition-scale duration-200 ease-in" loading="lazy" src={listing.imgUrls[0]} alt=""/>
+            <img className="h-[300px] w-full object-cover  transition-scale duration-200 ease-in" loading="lazy" src={listing.imgUrls[0]} alt=""/>
             <Moment className="absolute top-2 left-2 bg-black text-white rounded-md px-2 py-1 shadow-lg uppercase text-xs font-semibold"fromNow >
                 {listing.timestamp?.toDate()}
             </Moment>
