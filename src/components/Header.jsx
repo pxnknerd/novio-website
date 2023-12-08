@@ -27,7 +27,7 @@ export default function Header() {
             <div>
             <img src={process.env.PUBLIC_URL + '/novioLogoB.png'} 
             alt="Logo" 
-            className="h-14 cursor-pointer" 
+            className="h-14 sm:h-20 cursor-pointer" 
             onClick={()=>navigate("/")} />
             </div>
             <div>
