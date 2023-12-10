@@ -96,7 +96,7 @@ export default function Profile() {
   }
   return (
     <>
-    <section className="max-w-6xl mx-auto flex justify-center items-center flex-col">
+    <section className="px-6 max-w-6xl mx-auto flex justify-center items-center flex-col">
       <h1 className="text-3xl text-center mt-6 font-bold">My Profile</h1>
       <div className="w-full md:w-[50%] mt-6 px-3">
 
@@ -108,7 +108,7 @@ export default function Profile() {
           value={name} 
           disabled={!changeDetail} 
           onChange={onChange} 
-          className={`mb-6 w-full px-4 py-2 text-xl text-gray-700 bg-white border-2 border-black rounded shadow-lg transition ease-in-out ${changeDetail && "bg-gray-200 focus:bg-red-100" }`}/> 
+          className={`mb-6 w-full px-4 py-2 text-md text-gray-700 bg-white border-2 border-black rounded shadow-lg transition ease-in-out ${changeDetail && "bg-gray-200 focus:bg-red-100" }`}/> 
          
           {/*Email input*/}
 
@@ -117,7 +117,7 @@ export default function Profile() {
         id="email" 
         value={email} 
         disabled 
-        className="mb-6 w-full px-4 py-2 text-xl text-gray-700 bg-white border-2  border-black rounded shadow-lg transition ease-in-out"/> 
+        className="mb-6 w-full px-4 py-2 text-md text-gray-700 bg-white border-2  border-black rounded shadow-lg transition ease-in-out"/> 
           
          
           <div className="flex justify-between whitespace-nowrap mb-6 text-sm sm:text-lg">
@@ -132,7 +132,7 @@ export default function Profile() {
             <p onClick={onLogout} className="text-black font-semibold hover:text-gray-300 transition ease-in-out duration-200 cursor-pointer">Sign Out</p>
           </div>
         </form>
-        <button type="submit" className="w-full bg-black text-white uppercase px-7 py-3 text-sm font-medium shaddow-md hover:opacity-75 rounded transition duration-250 ease-in-out">
+        <button type="submit" className="w-full bg-black text-white uppercase px-7 py-3 text-sm font-medium shadow-md hover:opacity-75 rounded transition duration-250 ease-in-out">
           <Link to = "/create-listing" className="flex justify-center items-center ">
           <HiHome className=" mr-2 text-3xl rounded-full " />
           Sell or rent your home
@@ -147,7 +147,7 @@ export default function Profile() {
             <h2 className="text-2xl text-center font-semibold mt-6 mb-6">
               My Listings
             </h2>
-            <ul className="sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl-grid-cols-5 mt-6 mb-6">
+            <ul className="px-10 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl-grid-cols-5 mt-6 mb-6">
               {listings.map((listing) => (
                 <ListingItem
                   key={listing.id}

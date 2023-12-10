@@ -5,7 +5,7 @@ import { MdDelete, MdEdit } from "react-icons/md";
 
 
 export default function ListingItem({ listing, id, onEdit, onDelete}) {
-    return <li className="relative border-[3px] border-black bg-white flex flex-col justify-between items-center shadow-lg hover:shadow-xl rounded-md overflow-hidden transition-scale-shadow ease-in-out hover:scale-105 duration-200 m-[10px]">
+    return <li className="relative border-[3px] border-black bg-white flex flex-col justify-between items-center shadow-lg hover:shadow-xl rounded-md overflow-hidden transition-scale-shadow ease-in-out md:hover:scale-105 duration-200 m-[10px]">
         <Link className="contents" to={`/category/${listing.type}/${id}`}>
             <img className="h-[300px] w-full object-cover  transition-scale duration-200 ease-in" loading="lazy" src={listing.imgUrls[0]} alt=""/>
             <Moment className="absolute top-2 left-2 bg-black text-white rounded-md px-2 py-1 shadow-lg uppercase text-xs font-semibold"fromNow >
@@ -16,8 +16,8 @@ export default function ListingItem({ listing, id, onEdit, onDelete}) {
                 <FaLocationDot className="h-4 w-4 text-black" />
                 <p className="font-semibold text-sm mb-[2px] capitalize text-black truncate">{listing.address}</p>
                 </div>
-                <p className="font-semibold m-0 text-xl text-black truncate">{listing.name}</p>
-                <p className="text-[#000000] mt-2 font-semibold">
+                <p className="font-semibold m-0 text-xl text-black capitalize truncate">{listing.name}</p>
+                <p className="text-[#1d1d1d] mt-2 font-semibold">
             $
             {listing.offer
               ? listing.discountedPrice

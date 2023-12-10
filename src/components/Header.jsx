@@ -23,31 +23,31 @@ export default function Header() {
     }
   return (
     <div className="bg-white border-b-[22px] border-black p-4 sticky top-0 z-40">
-        <header className=" flex sm:flex  justify-between items-center px-3 max-w-5xl mx-auto">
+        <header className=" flex justify-between items-center px-3 max-w-6xl mx-auto">
             <div>
             <img src={process.env.PUBLIC_URL + '/novioLogoB.png'} 
             alt="Logo" 
-            className="h-14 sm:h-20 cursor-pointer" 
+            className="opacity-100 h-7 md:h-8 cursor-pointer" 
             onClick={()=>navigate("/")} />
             </div>
             <div>
-                <ul className="flex space-x-10 ">
+                <ul className="flex justify-between space-x-4 ">
                 <li
-  className={`cursor-pointer pt-7 ${pathMatchRoute("/") ? "font-bold text-black border-b-3 border-black" : "font-semibold text-gray-500 border-b-3 border-transparent"}`}
+  className={`cursor-pointer pt-3 text-sm md:text-xl ${pathMatchRoute("/") ? "font-bold text-black border-b-3 border-black" : "font-semibold text-gray-500 border-b-3 border-transparent"}`}
   onClick={() => navigate("/")}
 >
   Home
 </li>
 
 <li
-  className={`cursor-pointer pt-7 ${pathMatchRoute("/Offers") ? "font-bold text-black border-b-3 border-black" : "font-semibold text-gray-500 border-b-3 border-transparent"}`}
+  className={`cursor-pointer pt-3 text-sm md:text-xl ${pathMatchRoute("/Offers") ? "font-bold text-black border-b-3 border-black" : "font-semibold text-gray-500 border-b-3 border-transparent"}`}
   onClick={() => navigate("/Offers")}
 >
   Offers
 </li>
 
 <li
-  className={`cursor-pointer pt-7 ${(pathMatchRoute("/sign-in") || pathMatchRoute("/profile")) ? "font-bold text-black border-b-3 border-black" : "font-semibold text-gray-500 border-b-3 border-transparent"}`}
+  className={`flex cursor-pointer pt-3 text-sm md:text-xl ${(pathMatchRoute("/sign-in") || pathMatchRoute("/profile")) ? " font-bold text-black border-b-3 border-black" : "font-semibold text-gray-500 border-b-3 border-transparent"}`}
   onClick={() => navigate("/profile")}
 >
  {pageState}
