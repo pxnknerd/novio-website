@@ -1,9 +1,15 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+
 body{
-    background-color: rgb(255, 255, 255)
+    background-color: rgba(255, 255, 255, 0.842)
+}
+
+body{
+    font-family: 'Rubik', sans-serif;
 }
 
 .swiper-button-prev:after{
@@ -24,3 +30,15 @@ html::-webkit-scrollbar{
 html{
     scrollbar-width: none;
 }
+
+.transition-transform {
+    transition-property: transform;
+  }
+  
+  .ease-in-out {
+    transition-timing-function: ease-in-out;
+  }
+  
+  .duration-300 {
+    transition-duration: 300ms;
+  }

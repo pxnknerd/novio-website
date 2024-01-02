@@ -11,6 +11,46 @@ import { useNavigate } from "react-router-dom";
 
 export default function CreateListing() {
   const navigate = useNavigate();
+  const majorMoroccanCities = [
+    "Casablanca",
+    "Rabat",
+    "Marrakech",
+    "Fes",
+    "Tangier",
+    "Agadir",
+    "Meknes",
+    "Oujda",
+    "Kenitra",
+    "Tetouan",
+    "Laayoune",
+    "Nador",
+    "Settat",
+    "Mohammedia",
+    "Khouribga",
+    "El Jadida",
+    "Benguerir",
+    "Taza",
+    "Khenifra",
+    "Beni Mellal",
+    "Errachidia",
+    "Safi",
+    "Dakhla",
+    "Taroudant",
+    "Larache",
+    "Guelmim",
+    "Ouarzazate",
+    "Berkane",
+    "Taourirt",
+    "Sidi Slimane",
+    "Lagouira",
+    "Al Hoceima",
+    "Tiznit",
+    "Azemmour",
+    "Tifelt",
+    "Midelt",
+    "Taounate",
+    "Chefchaouen",
+  ];
   const auth = getAuth()
   const [geolocationEnabled, setGeolocationEnabled] = useState(true);
   const [loading,setLoading] = useState(false);
@@ -21,6 +61,7 @@ export default function CreateListing() {
     bathrooms: 1,
     parking: false,
     furnished: false,
+    city: "",
     address: "",
     description: "",
     offer: false,
@@ -67,6 +108,12 @@ export default function CreateListing() {
           [e.target.id]: boolean ?? e.target.value,
 
         }))
+    }
+    if (e.target.id === "city") {
+      setFormData((prevState) => ({
+        ...prevState,
+        city: e.target.value,
+      }));
     }
   }
   async function onSubmit(e){
@@ -154,6 +201,7 @@ export default function CreateListing() {
       geolocation,
       timestamp: serverTimestamp(),
       userRef: auth.currentUser.uid,
+      city: formData.city,
     };
     delete formDataCopy.images;
     !formDataCopy.offer && delete formDataCopy.discountedPrice;
@@ -173,9 +221,9 @@ export default function CreateListing() {
   }
 
   return (
-    <main className="max-w-md px-2 mx-auto">
+    <main className="max-w-md mx-auto">
       <h1 className="text-3xl text-center mt-6 font-bold">Create a Listing</h1>
-      <form onSubmit={onSubmit}> 
+      <form onSubmit={onSubmit} className="px-8"> 
         <p className="text-lg mt-6 font-semibold">Sell / Rent</p>
         <div className="flex">
           <button
@@ -295,6 +343,20 @@ export default function CreateListing() {
             no
           </button>
         </div>
+        <p className="text-lg mt-6 font-semibold">City</p>
+      <select
+        id="city"
+        value={formData.city}
+        onChange={onChange}
+        className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black mb-6"
+      >
+        <option value="" disabled>Select a city</option>
+        {majorMoroccanCities.map((city) => (
+          <option key={city} value={city}>
+            {city}
+          </option>
+        ))}
+      </select>
         <p className="text-lg mt-6 font-semibold">Address</p>
         <textarea
           type="text"
@@ -385,7 +447,7 @@ export default function CreateListing() {
               />
               {type === "rent" && (
                 <div className="">
-                  <p className="text-md w-full whitespace-nowrap">$ / Month</p>
+                  <p className="text-md w-full whitespace-nowrap">DH / Month</p>
                 </div>
               )}
             </div>
@@ -409,7 +471,7 @@ export default function CreateListing() {
                 {type === "rent" && (
                   <div className="">
                     <p className="text-md w-full whitespace-nowrap">
-                      $ / Month
+                      DH / Month
                     </p>
                   </div>
                 )}

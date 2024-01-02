@@ -5,6 +5,8 @@ import { FaGoogle } from "react-icons/fa";
 import { toast } from "react-toastify";
 import {db} from "../firebase";
 import { useNavigate } from "react-router-dom";
+import { FcGoogle } from "react-icons/fc";
+
 
 export default function OAuth() {
   const navigate = useNavigate()
@@ -28,7 +30,7 @@ export default function OAuth() {
        });
       }
 
-      navigate("/home");
+      navigate("/");
     } catch (error) {
       toast.error("Could not authorize with Google");
 
@@ -39,8 +41,8 @@ export default function OAuth() {
     <button
     type="button"
     onClick={onGoogleClick}
-    className="flex items-center justify-center w-full bg-gray-50 px-7 py-3 uppercase text-sm shadow-md hover:shadow-lg active: shadow-lg transition duration-150 ease-in-out rounded">
-        <FaGoogle className="text-2xl bg-white rounded-full mr-2" />
+    className="flex items-center justify-center w-full bg-white border border-gray-300 px-7 py-3 uppercase text-sm shadow-md hover:shadow-lg active: shadow-lg transition duration-150 ease-in-out rounded">
+        <FcGoogle className="text-2xl bg-white rounded-full mr-2" />
         Continue with Google
     </button>
   )

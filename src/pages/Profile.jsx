@@ -13,9 +13,9 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { db } from "../firebase";
-import { HiHome } from "react-icons/hi";
 import { useEffect } from "react";
 import ListingItem from "../components/ListingItem";
+
 
 export default function Profile() {
   const auth = getAuth();
@@ -96,8 +96,8 @@ export default function Profile() {
   }
   return (
     <>
-    <section className="px-6 max-w-6xl mx-auto flex justify-center items-center flex-col">
-      <h1 className="text-3xl text-center mt-6 font-bold">My Profile</h1>
+    <section className="px-6 pt-6 max-w-6xl mx-auto flex justify-center items-center flex-col">
+      <h1 className="text-xl md:text-2xl text-center mt-6 ">My Profile</h1>
       <div className="w-full md:w-[50%] mt-6 px-3">
 
         <form>
@@ -108,7 +108,7 @@ export default function Profile() {
           value={name} 
           disabled={!changeDetail} 
           onChange={onChange} 
-          className={`mb-6 w-full px-4 py-2 text-md text-gray-700 bg-white border-2 border-black rounded shadow-lg transition ease-in-out ${changeDetail && "bg-gray-200 focus:bg-red-100" }`}/> 
+          className={`mb-6 w-full px-4 py-2 text-md text-gray-700 bg-white hover:shadow-xl rounded shadow-lg transition ease-in-out ${changeDetail && "bg-gray-200 focus:bg-gray-200" }`}/> 
          
           {/*Email input*/}
 
@@ -117,25 +117,26 @@ export default function Profile() {
         id="email" 
         value={email} 
         disabled 
-        className="mb-6 w-full px-4 py-2 text-md text-gray-700 bg-white border-2  border-black rounded shadow-lg transition ease-in-out"/> 
+        className="mb-6 w-full px-4 py-2 text-md text-gray-700 bg-white rounded shadow-lg hover:shadow-xl transition ease-in-out"/> 
           
          
           <div className="flex justify-between whitespace-nowrap mb-6 text-sm sm:text-lg">
             <p className="flex items-center">
-              Do you want to change your name?
+              
               <span onClick={() => {
                 changeDetail && onSubmit()
                 setChangeDetail((prevState) => !prevState)
               }} 
-              className="text-black font-semibold hover:text-gray-300 transition ease-in-out duration-150 ml-1 cursor-pointer">{changeDetail ? "Apply Change" : "Edit"}</span>
+              className="text-black capitalize font-semibold hover:text-gray-300 transition ease-in-out duration-150 ml-1 cursor-pointer">{changeDetail ? "Apply Change" : "Edit Profile"} 
+
+              </span>
             </p>
-            <p onClick={onLogout} className="text-black font-semibold hover:text-gray-300 transition ease-in-out duration-200 cursor-pointer">Sign Out</p>
+            <p onClick={onLogout} className="text-black font-semibold  capitalize  hover:text-gray-300 transition ease-in-out duration-200 cursor-pointer">Sign out</p>
           </div>
         </form>
-        <button type="submit" className="w-full bg-black text-white uppercase px-7 py-3 text-sm font-medium shadow-md hover:opacity-75 rounded transition duration-250 ease-in-out">
+        <button type="submit" className="w-full text-sm text-white shadow-lg hover:shadow-xl  rounded-md bg-black px-3 py-3   capitalize transition-all duration-300">
           <Link to = "/create-listing" className="flex justify-center items-center ">
-          <HiHome className=" mr-2 text-3xl rounded-full " />
-          Sell or rent your home
+          List your home
           </Link>
         
         </button>
@@ -144,10 +145,10 @@ export default function Profile() {
     <div>
         {!loading && listings.length > 0 && (
           <>
-            <h2 className="text-2xl text-center font-semibold mt-6 mb-6">
+            <h2 className="text-xl md:text-2xl text-center mt-6 mb-6">
               My Listings
             </h2>
-            <ul className="px-10 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl-grid-cols-5 mt-6 mb-6">
+            <ul className="px-6 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl-grid-cols-5 mt-6 mb-6">
               {listings.map((listing) => (
                 <ListingItem
                   key={listing.id}
