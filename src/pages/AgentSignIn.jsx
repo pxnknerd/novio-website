@@ -5,7 +5,7 @@ import OAuth from '../components/OAuth';
 import {signInWithEmailAndPassword, getAuth } from "firebase/auth"
 import {toast} from "react-toastify";
 
-export default function SignIn() {
+export default function AgentSignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -14,7 +14,7 @@ export default function SignIn() {
   const { email, password } = formData;
   const handleSignUpAsAgentClick = () => {
     // Navigate to the AgentSignUp page when clicked
-    navigate("/agent-sign-up");
+    navigate("/sign-in");
   };
   const navigate = useNavigate()
   function onChange(e) {
@@ -61,7 +61,7 @@ export default function SignIn() {
       <div className="flex items-center py-12 bg-white md:my-0 md:h-screen md:shadow-md shadow-black/30">
         <form onSubmit={onSubmit} className='max-w-md px-4 w-[28rem] mx-auto'>
       <div className=" justify-start text-center md:text-left text-xl md:text-4xl py-8 text-black">
-            Sign In
+            Agent Sign In
           </div>
           <input 
           type="email" 
@@ -88,8 +88,8 @@ export default function SignIn() {
             ((prevState) => !prevState)}/>}
           </div>
           <div className="flex justify-between whitespace-nowrap text-sm sm:text-md">
-          <p className="mb-6">Create
-              <Link to="/sign-up" className="text-black hover:text-red-700 transition duration-200 ease-in-out font-semibold"> New account</Link>
+          <p className="mb-6">Create new 
+              <Link to="/agent-sign-up" className="text-black hover:text-red-700 transition duration-200 ease-in-out font-semibold"> Agent account</Link>
             </p>
             <p>
               <Link to="/forgot-password" className="text-black hover:text-black transition duration-200 ease-in-out font-semibold"> Forgot password?</Link>
@@ -106,7 +106,7 @@ export default function SignIn() {
       className="text-center py-6 font-semibold mx-4 cursor-pointer hover:underline"
       onClick={handleSignUpAsAgentClick}
     >
-      Are you an agent ?
+      Sign in as user
     </p>
       </form> 
       </div>

@@ -108,9 +108,6 @@ export default function SignUp() {
             <p className="mb-6">Have an account? 
               <Link to="/sign-in" className="text-black hover:text-red-700 transition duration-200 ease-in-out font-semibold"> Sign in</Link>
             </p>
-            <p>
-              <Link to="/forgot-password" className="text-black hover:text-red-700 transition duration-200 ease-in-out font-semibold"> Forgot Password?</Link>
-            </p>
           </div>
           <button className="w-full uppercase bg-black rounded text-white px-7 py-3" 
         type="submit">Submit</button> 

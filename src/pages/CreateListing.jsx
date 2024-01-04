@@ -7,6 +7,7 @@ import {v4 as uuidv4} from "uuid";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { useNavigate } from "react-router-dom";
+import AgentGuard from '../components/AgentGuard';
 
 
 export default function CreateListing() {
@@ -221,6 +222,7 @@ export default function CreateListing() {
   }
 
   return (
+    <AgentGuard>
     <main className="max-w-md mx-auto">
       <h1 className="text-3xl text-center mt-6 font-bold">Create a Listing</h1>
       <form onSubmit={onSubmit} className="px-8"> 
@@ -497,5 +499,6 @@ export default function CreateListing() {
         <button type="submit" className="mb-6 w-full px-7 py-3 bg-black text-white font-medium text-sm uppercase rounded shadow-md hover:opacity-70 hover:shadow-lg focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out">Create Listing</button>
       </form>
     </main>
+    </AgentGuard>
   );
 }

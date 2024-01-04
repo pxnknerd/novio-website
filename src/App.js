@@ -14,7 +14,10 @@ import CreateListing from "./pages/CreateListing"
 import Listing from "./pages/Listing"
 import EditListing from "./pages/EditListing";
 import Category from "./pages/Category";
+import AgentSignUp from "./pages/AgentSignUp";
+import AgentSignIn from "./pages/AgentSignIn";
 import Footer from "./components/Footer"
+import AgentGuard from './components/AgentGuard';
 
 function App() {
 
@@ -30,11 +33,13 @@ function App() {
           </Route>
           <Route path="/sign-in" element={<SignIn />} />
           <Route path="/sign-up" element={<SignUp />} />
+          <Route path="/agent-sign-up" element={<AgentSignUp />} />
+          <Route path="/agent-sign-in" element={<AgentSignIn />} />
           <Route path="/offers" element={<Offers />} />
           <Route path="/category/:categoryName" element={<Category />} />
           <Route path="/category/:categoryName/:listingId" element={<Listing />}/>
           <Route path="/create-listing" element={<PrivateRoute/>}>
-          <Route path="/create-listing" element={<CreateListing />} />
+          <Route path="/create-listing" element={<AgentGuard> <CreateListing /> </AgentGuard>} />
           </Route>
           <Route path="/edit-listing" element={<PrivateRoute/>}>
           <Route path="/edit-listing/:listingId" element={<EditListing />} />
@@ -66,7 +71,7 @@ function HeaderWithCondition() {
 
   useEffect(() => {
     const currentPath = window.location.pathname;
-    const shouldHideHeader = ["/sign-in", "/forgot-password", "/sign-up"].includes(currentPath);
+    const shouldHideHeader = ["/sign-in", "/forgot-password", "/sign-up", "/agent-sign-up", "/agent-sign-in"].includes(currentPath);
     setHideHeader(shouldHideHeader);
   }, [navigate]);
 
@@ -79,7 +84,7 @@ function FooterWithCondition() {
 
   useEffect(() => {
     const currentPath = window.location.pathname;
-    const shouldHideFooter = ["/sign-in", "/forgot-password", "/sign-up"].includes(currentPath);
+    const shouldHideFooter = ["/sign-in", "/forgot-password", "/sign-up", "/agent-sign-up", "/agent-sign-in"].includes(currentPath);
     setHideFooter(shouldHideFooter);
   }, [navigate]);
 

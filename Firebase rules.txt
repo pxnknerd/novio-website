@@ -19,8 +19,16 @@ service cloud.firestore {
     	allow create;
     	allow update: if request.auth.uid == user
     }
+
+    // Agents
+    match /agents/{agent} {
+      allow read, create, update: if request.auth == agent
+    }
   }
 }
+
+
+
 
 
     // Storage rules

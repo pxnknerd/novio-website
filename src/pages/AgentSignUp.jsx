@@ -1,21 +1,21 @@
 import React, { useState } from 'react'
 import { AiFillEyeInvisible, AiFillEye} from "react-icons/ai";
-import { Link, useNavigate } from 'react-router-dom';
-import OAuth from '../components/OAuth';
-import {signInWithEmailAndPassword, getAuth } from "firebase/auth"
+import { Link } from "react-router-dom";
+import OAuth from "../components/OAuth";
+import {getAuth, createUserWithEmailAndPassword, updateProfile} from "firebase/auth";
+import {db} from "../firebase";
+import {doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 import {toast} from "react-toastify";
 
-export default function SignIn() {
+export default function AgentSignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
+    name:"",
     email: "",
     password: "",
   }); 
-  const { email, password } = formData;
-  const handleSignUpAsAgentClick = () => {
-    // Navigate to the AgentSignUp page when clicked
-    navigate("/agent-sign-up");
-  };
+  const { name, email, password } = formData;
   const navigate = useNavigate()
   function onChange(e) {
     setFormData((prevState)=>({
@@ -27,22 +27,32 @@ export default function SignIn() {
     e.preventDefault()
     try {
       const auth = getAuth()
-      const userCredential = await signInWithEmailAndPassword(
+      const userCredential = await createUserWithEmailAndPassword(
         auth, 
         email, 
         password
-      );
-      if(userCredential.user) {
-        navigate("/");
+        );
+        updateProfile(auth.currentUser, {
+          displayName: name
+        });
+      const user = userCredential.user;
+      const formDataCopy = {...formData};
+      delete formDataCopy.password;
+      formDataCopy.timestamp = serverTimestamp();
+      formDataCopy.status = "pending";
 
-    } 
-  } catch (error) {
-      toast.error("Bad user credentials");
+      await setDoc(doc(db, "agentRequests", user.uid), formDataCopy)
+      toast.success("Agent sign up request  was sent for approval")
+      navigate("/");
+    } catch (error) {
+      toast.error("Something went wrong with the registration")
+      
     }
+
   }
   return (
     <section>
-      <div className="grid grid-cols-1 md:grid-cols-2"> 
+       <div className="grid grid-cols-1 md:grid-cols-2"> 
       <div className="grid w-full h-48 grid-cols-1 grid-rows-1 overflow-hidden bg-cover md:h-screen bg-blue-100 ">
         <div className='h-full  col-span-1 col-start-1 row-span-1 row-start-1"'>
       <img src={process.env.PUBLIC_URL + '/img007.png'} 
@@ -60,10 +70,18 @@ export default function SignIn() {
       </div>
       <div className="flex items-center py-12 bg-white md:my-0 md:h-screen md:shadow-md shadow-black/30">
         <form onSubmit={onSubmit} className='max-w-md px-4 w-[28rem] mx-auto'>
-      <div className=" justify-start text-center md:text-left text-xl md:text-4xl py-8 text-black">
-            Sign In
+        <div className=" justify-start text-center md:text-left text-xl md:text-4xl py-8 text-black">
+            Create agent account
           </div>
           <input 
+          type="text" 
+          id="name" 
+          value={name} 
+          onChange={onChange}
+          placeholder="Full name"
+          className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
+          />
+           <input 
           type="email" 
           id="email" 
           value={email} 
@@ -80,7 +98,7 @@ export default function SignIn() {
           placeholder="Password"
           className="w-full px-4 mb-6 py-2 text-md  shadow-md color-grey-700 bg-white border-gray-300 rounded transition ease-in-out"
           />   
-          {showPassword ? <AiFillEyeInvisible className="absolute right-3 top-3 text-md cursor-pointer"
+          {showPassword ? <AiFillEyeInvisible className="absolute right-3 top-3 text-xl cursor-pointer"
            onClick={() => setShowPassword
              ((prevState) => !prevState)}/>
           : <AiFillEye className="absolute right-3 top-3 text-xl cursor-pointer" 
@@ -88,26 +106,18 @@ export default function SignIn() {
             ((prevState) => !prevState)}/>}
           </div>
           <div className="flex justify-between whitespace-nowrap text-sm sm:text-md">
-          <p className="mb-6">Create
-              <Link to="/sign-up" className="text-black hover:text-red-700 transition duration-200 ease-in-out font-semibold"> New account</Link>
+            <p className="mb-6">Have an account? 
+              <Link to="/sign-in" className="text-black hover:text-red-700 transition duration-200 ease-in-out font-semibold"> Sign in</Link>
             </p>
-            <p>
-              <Link to="/forgot-password" className="text-black hover:text-black transition duration-200 ease-in-out font-semibold"> Forgot password?</Link>
-            </p>
+     
           </div>
           <button className="w-full uppercase bg-black rounded text-white px-7 py-3" 
-        type="submit">Sign in</button> 
+        type="submit">Submit</button> 
       <div className="flex items-center my-4 before:border-t before:flex-1 before:border-gray-300 after:border-t after:flex-1 after:border-gray-300">
         <p className="text-center
         font-semibold mx-4">OR</p>  
       </div>
        <OAuth/>
-       <p
-      className="text-center py-6 font-semibold mx-4 cursor-pointer hover:underline"
-      onClick={handleSignUpAsAgentClick}
-    >
-      Are you an agent ?
-    </p>
       </form> 
       </div>
       </div>
