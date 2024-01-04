@@ -95,7 +95,7 @@ export default function Header() {
               pathMatchRoute('/sign-in') || pathMatchRoute('/profile')
                 ? ' text-black'
                 : ' text-black'
-            }`}
+            }`} 
             onClick={() => navigate('/profile')}
           >
             {pageState}
