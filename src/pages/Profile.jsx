@@ -28,6 +28,7 @@ export default function Profile() {
   });
   const { name, email } = formData;
   const [isAgentUser, setIsAgentUser] = useState(false);
+  const [userStatus, setUserStatus] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -35,6 +36,19 @@ export default function Profile() {
         // Check if the user is an agent
         const agentStatus = await isAgent();
         setIsAgentUser(agentStatus);
+
+         // Fetch user status
+         const userDocRef = doc(db, 'agents', auth.currentUser.uid);
+         const userDoc = await getDoc(userDocRef);
+ 
+         if (userDoc.exists()) {
+           // Assuming the user status is stored as a field named "status"
+           const status = userDoc.data().status;
+           setUserStatus(status);
+         } else {
+           // Handle the case where the user document doesn't exist
+           setUserStatus(null);
+         }
   
         // Fetch user listings
         const listingRef = collection(db, "listings");
@@ -160,7 +174,7 @@ export default function Profile() {
               </p>
             </div>
           </form>
-          {isAgentUser && (
+          {isAgentUser && userStatus === 'approved' && (
         <button
           type="submit"
           className="w-full text-sm text-white shadow-lg hover:shadow-xl rounded-md bg-black px-3 py-3 capitalize transition-all duration-300"

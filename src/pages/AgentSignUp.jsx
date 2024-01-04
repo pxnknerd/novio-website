@@ -41,7 +41,8 @@ export default function AgentSignUp() {
       formDataCopy.timestamp = serverTimestamp();
       formDataCopy.status = "pending";
 
-      await setDoc(doc(db, "agentRequests", user.uid), formDataCopy)
+
+      await setDoc(doc(db, "agents", user.uid), formDataCopy)
       toast.success("Agent sign up request  was sent for approval")
       navigate("/");
     } catch (error) {
