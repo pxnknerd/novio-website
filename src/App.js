@@ -59,7 +59,7 @@ rtl={false}
 pauseOnFocusLoss
 draggable
 pauseOnHover
-theme="dark"
+theme="light"
 />
      </>
   );
@@ -84,7 +84,7 @@ function FooterWithCondition() {
 
   useEffect(() => {
     const currentPath = window.location.pathname;
-    const shouldHideFooter = ["/sign-in", "/forgot-password", "/sign-up", "/agent-sign-up", "/agent-sign-in"].includes(currentPath);
+    const shouldHideFooter = ["/sign-in", "/forgot-password", "/sign-up", "/agent-sign-up", "/agent-sign-in", "/create-listing"].includes(currentPath);
     setHideFooter(shouldHideFooter);
   }, [navigate]);
 

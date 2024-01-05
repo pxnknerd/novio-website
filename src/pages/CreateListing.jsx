@@ -8,10 +8,14 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import AgentGuard from '../components/AgentGuard';
+import { GrFormNext } from "react-icons/gr";
+import { GrFormPrevious } from "react-icons/gr";
+
 
 
 export default function CreateListing() {
   const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
   const majorMoroccanCities = [
     "Casablanca",
     "Rabat",
@@ -58,6 +62,9 @@ export default function CreateListing() {
   const [formData, setFormData] = useState({
     type: "rent",
     name: "",
+    yearBuilt: 2018,
+    size: 0,
+    homeType: "villa",
     bedrooms: 1,
     bathrooms: 1,
     parking: false,
@@ -75,6 +82,9 @@ export default function CreateListing() {
   const {
     type,
     name,
+    yearBuilt,
+    size,
+    homeType,
     bedrooms,
     bathrooms,
     parking,
@@ -114,6 +124,25 @@ export default function CreateListing() {
       setFormData((prevState) => ({
         ...prevState,
         city: e.target.value,
+      }));
+    }
+    if (e.target.id === "size" && isNaN(e.target.value)) {
+      return; // Ignore non-numeric input
+    }
+
+    // Handle 'yearBuilt' selection from a dropdown
+    if (e.target.id === "yearBuilt") {
+      setFormData((prevState) => ({
+        ...prevState,
+        yearBuilt: parseInt(e.target.value),
+      }));
+    }
+
+    // Handle 'homeType' selection from a dropdown
+    if (e.target.id === "homeType") {
+      setFormData((prevState) => ({
+        ...prevState,
+        homeType: e.target.value,
       }));
     }
   }
@@ -220,12 +249,35 @@ export default function CreateListing() {
   if(loading){
     return <Spinner />
   }
+  
 
-  return (
-    <AgentGuard>
-    <main className="max-w-md mx-auto">
-      <h1 className="text-3xl text-center mt-6 font-bold">Create a Listing</h1>
-      <form onSubmit={onSubmit} className="px-8"> 
+  const nextStep = () => {
+    setCurrentStep(currentStep + 1);
+  };
+
+  const prevStep = () => {
+    setCurrentStep(currentStep - 1);
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return renderStep1();
+      case 2:
+        return renderStep2();
+      case 3:
+        return renderStep3();
+      case 4:
+        return renderStep4();  
+      default:
+        return null;
+    }
+  };
+
+  const renderStep1 = () => {
+    return (
+      <div>
+        <h1 className="text-3xl mb-12 font-bold">Step 1 - Create a Listing</h1>
         <p className="text-lg mt-6 font-semibold">Sell / Rent</p>
         <div className="flex">
           <button
@@ -255,18 +307,56 @@ export default function CreateListing() {
             rent
           </button>
         </div>
-        <p className="text-lg mt-6 font-semibold">Name</p>
+         <p className="text-lg mt-6 font-semibold">Home Type</p>
+          <select
+            id="homeType"
+            value={homeType}
+            onChange={onChange}
+            className="w-full mb-6 px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+          >
+            <option value="villa">Villa</option>
+            <option value="apartment">Apartment</option>
+            <option value="land">Land</option>
+            <option value="other">Other</option>
+          </select>
+        <div className="flex space-x-6 mb-6">
+  <div className="flex-1">
+    <p className="text-lg font-semibold">Year Built</p>
+    <select
+      id="yearBuilt"
+      value={yearBuilt}
+      onChange={onChange}
+      className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+    >
+      {/* Populate options for yearBuilt */}
+      {Array.from({ length: 126 }, (_, index) => (
+        <option key={index} value={2025 - index}>
+          {2025 - index}
+        </option>
+      ))}
+    </select>
+  </div>
+  <div className="flex-1">
+    <p className="text-lg font-semibold">Size</p>
+    <div className="flex w-full justify-center items-center space-x-6">
+      <div className="relative w-full">
         <input
-          type="text"
-          id="name"
-          value={name}
+          type="number"
+          id="size"
+          value={size}
           onChange={onChange}
-          placeholder="Name"
-          maxLength="32"
-          minLength="10"
+          min="0"
           required
-          className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black mb-6"
+          className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
         />
+        <div className="absolute right-10 top-1/2 transform -translate-y-1/2 text-md whitespace-nowrap">
+          m²
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+          
         <div className="flex space-x-6 mb-6">
           <div>
             <p className="text-lg font-semibold">Beds</p>
@@ -345,6 +435,15 @@ export default function CreateListing() {
             no
           </button>
         </div>
+        <button className="mb-6 px-3 py-2 mt-8 bg-white border-2 border-black text-black rounded-full shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"  onClick={nextStep}><GrFormNext className="inline text-lg" /></button>
+      </div>
+    );
+  };
+
+  const renderStep2 = () => {
+    return (
+      <div>
+        <h1 className="text-3xl mb-12 font-bold">Step 2 - Address</h1>
         <p className="text-lg mt-6 font-semibold">City</p>
       <select
         id="city"
@@ -398,16 +497,16 @@ export default function CreateListing() {
             </div>
           </div>
         )}
-        <p className="text-lg font-semibold">Description</p>
-        <textarea
-          type="text"
-          id="description"
-          value={description}
-          onChange={onChange}
-          placeholder="Description"
-          required
-          className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black mb-6"
-        />
+        <button className="mb-6 px-3 py-2 mt- bg-white border-2 border-black text-black rounded-full shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"  onClick={prevStep}><GrFormPrevious className="inline text-lg" /></button>
+        <button className="mb-6 px-3 py-2 ml-2 mt- bg-white border-2 border-black text-black rounded-full shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"  onClick={nextStep}><GrFormNext className="inline text-lg" /></button>
+      </div>
+    );
+  };
+
+  const renderStep3 = () => {
+    return (
+      <div>
+        <h1 className="text-3xl mb-12 font-bold">Step 3 - Princing</h1>
         <p className="text-lg font-semibold">Offer</p>
         <div className="flex mb-6">
           <button
@@ -481,6 +580,28 @@ export default function CreateListing() {
             </div>
           </div>
         )}
+        
+        
+        <button className="mb-6 px-3 py-2 mt- bg-white border-2 border-black text-black rounded-full shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"  onClick={prevStep}><GrFormPrevious className="inline text-lg" /></button>
+        <button className="mb-6 px-3 py-2 ml-2 mt- bg-white border-2 border-black text-black rounded-full shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"  onClick={nextStep}><GrFormNext className="inline text-lg" /></button>
+      </div>
+    );
+    
+  };
+  const renderStep4 = () => {
+    return (
+      <div>
+        <h1 className="text-3xl mb-12 font-bold">Step 4 - Images / Description</h1>
+         <p className="text-lg font-semibold">Description</p>
+        <textarea
+          type="text"
+          id="description"
+          value={description}
+          onChange={onChange}
+          placeholder="Description"
+          required
+          className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black mb-6"
+        />
         <div className="mb-6">
           <p className="text-lg font-semibold">Images</p>
           <p className="text-gray-600">
@@ -497,7 +618,28 @@ export default function CreateListing() {
           />
         </div>
         <button type="submit" className="mb-6 w-full px-7 py-3 bg-black text-white font-medium text-sm uppercase rounded shadow-md hover:opacity-70 hover:shadow-lg focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out">Create Listing</button>
+        <button className="mb-6 px-3 py-2 mt- bg-white border-2 border-black text-black rounded-full shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"  onClick={prevStep}><GrFormPrevious className="inline text-lg" /></button>
+      </div>
+    );
+  };
+
+  return (
+    <AgentGuard>
+      
+    <main>
+    <div className="px-4 sm:px-2 py-2 grid grid-cols-1 md:grid-cols-2">
+      <div className="hidden sm:grid w-full h-48 grid-cols-1 grid-rows-1 overflow-hidden bg-cover md:h-screen bg-blue-100 ">
+      <div className='h-full  col-span-1 col-start-1 row-span-1 row-start-1"'>
+
+      </div>
+      </div>
+
+      <div className="flex items-center py-12 bg-white md:my-0 md:h-screen md:shadow-md shadow-black/30">
+      <form onSubmit={onSubmit} className='max-w-md px-4 w-[28rem] mx-auto'> 
+      {renderStepContent()}
       </form>
+      </div>
+      </div>
     </main>
     </AgentGuard>
   );

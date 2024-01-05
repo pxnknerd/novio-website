@@ -11,11 +11,12 @@ import {toast} from "react-toastify";
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name:"",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
   }); 
-  const { name, email, password } = formData;
+  const { firstName, lastName, email, password } = formData;
   const navigate = useNavigate()
   function onChange(e) {
     setFormData((prevState)=>({
@@ -33,7 +34,7 @@ export default function SignUp() {
         password
         );
         updateProfile(auth.currentUser, {
-          displayName: name
+          displayName: `${firstName} ${lastName}`,
         });
       const user = userCredential.user;
       const formDataCopy = {...formData};
@@ -75,9 +76,17 @@ export default function SignUp() {
           <input 
           type="text" 
           id="name" 
-          value={name} 
+          value={firstName} 
           onChange={onChange}
-          placeholder="Full name"
+          placeholder="First name"
+          className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
+          />
+          <input 
+          type="text" 
+          id="name" 
+          value={lastName} 
+          onChange={onChange}
+          placeholder="Last name"
           className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
           />
            <input 
