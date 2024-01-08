@@ -4,10 +4,10 @@ import { MdDelete, MdEdit } from "react-icons/md";
 
 
 export default function ListingItem({ listing, id, onEdit, onDelete}) {
-    return <li className="flex flex-col relative justify-between items-center overflow-hidden m-[10px] rounded-2xl shadow-xl bg-white mt-8 mb-8 font-semibold  text-black transition-all duration-300">
+    return <li className="flex flex-col relative justify-between items-center overflow-hidden m-[10px] rounded-2xl shadow-xl bg-white mt-8 mb-8   text-black transition-all duration-300">
         <Link className="contents" to={`/category/${listing.type}/${id}`}>
-            <img className="h-[240px] w-full object-cover  transition-scale duration-200 ease-in" loading="lazy" src={listing.imgUrls[0]} alt=""/>
-            <Moment className="absolute top-2 left-2 bg-black text-white rounded-md px-2 py-1 shadow-lg uppercase text-xs font-semibold"fromNow >
+            <img className="h-[200px] w-full object-cover  transition-scale duration-200 ease-in" loading="lazy" src={listing.imgUrls[0]} alt=""/>
+            <Moment className="absolute top-2 left-2 bg-black text-white rounded-md px-2 py-1 shadow-lg uppercase text-xs "fromNow >
                 {listing.timestamp?.toDate()}
             </Moment>
             <div className="w-full p-[10px]">
@@ -18,7 +18,7 @@ export default function ListingItem({ listing, id, onEdit, onDelete}) {
                   </p>
                 </div>
 
-                <p className="text-[#1d1d1d]  font-bold text-lg mt-1">
+                <p className="text-[#1d1d1d]  text-lg mt-1">
               
   {listing.offer
     ? `${listing.discountedPrice
@@ -32,12 +32,12 @@ export default function ListingItem({ listing, id, onEdit, onDelete}) {
 
           <div className="flex items-center mt-2 space-x-3">
             <div className="flex items-center space-x-1">
-              <p className="font-bold text-xs">
+              <p className=" text-xs">
                 {listing.bedrooms > 1 ? `${listing.bedrooms} Beds` : "1 Bed"}
               </p>
             </div>
             <div className="flex items-center space-x-1">
-              <p className="font-bold text-xs">
+              <p className=" text-xs">
                 {listing.bathrooms > 1
                   ? `${listing.bathrooms} Baths`
                   : "1 Bath"}

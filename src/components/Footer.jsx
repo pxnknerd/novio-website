@@ -6,8 +6,8 @@ import { IoLogoWhatsapp } from "react-icons/io";
 
 export default function Footer() {
   return (
-    <footer className='flex flex-col items-center mt-12 bg-gray-200 w-full'>
-    <div className='container flex flex-col items-center justify-center px-4  mx-auto flex-grow'>
+    <footer className='flex flex-col items-center mt-12 bg-gray-200'>
+    <div className='container flex flex-col items-center justify-center px-4  mx-auto flex-grow  max-w-6xl'>
     <hr className='my-4 border-gray-600' />
       <div className='flex w-full '>
         <div className='grid  flex-grow space-y-4 text-sm text-gray-500 sm:gap-2 grid-cols-1 lg:grid-cols-4 sm:grid-cols-4 sm:space-y-0'>

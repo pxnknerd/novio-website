@@ -19,6 +19,15 @@ body{
     color: #ffffff
 }
 
+.bg-custom-red {
+    background-color: #e61b00;
+  }
+
+.bg-custom-red:hover {
+    background-color: #991200;
+  }
+  
+
 .swiper-pagination-progressbar-fill{
     background: #ffffff !important
 }

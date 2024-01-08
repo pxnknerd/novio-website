@@ -13,10 +13,11 @@ export default function AgentSignUp() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
+    agency: "",
     email: "",
     password: "",
   }); 
-  const { firstName, lastName, email, password } = formData;
+  const { firstName, lastName, email, agency, password } = formData;
   const navigate = useNavigate()
   function onChange(e) {
     setFormData((prevState)=>({
@@ -33,25 +34,27 @@ export default function AgentSignUp() {
         email, 
         password
         );
-        updateProfile(auth.currentUser, {
-          displayName: `${firstName} ${lastName}`,
-        });
+        
       const user = userCredential.user;
       const formDataCopy = {...formData};
       delete formDataCopy.password;
       formDataCopy.timestamp = serverTimestamp();
       formDataCopy.status = "pending";
+// Ensure both operations are atomic
+await Promise.all([
+  updateProfile(auth.currentUser, {
+    displayName: `${firstName} ${lastName} ${agency}`,
+  }),
+  setDoc(doc(db, "agents", user.uid), formDataCopy),
+]);
 
-
-      await setDoc(doc(db, "agents", user.uid), formDataCopy)
-      toast.success("Agent sign up request  was sent for approval")
-      navigate("/");
-    } catch (error) {
-      toast.error("Something went wrong with the registration")
-      
-    }
-
-  }
+toast.success("Agent sign up request was sent for approval");
+navigate("/");
+} catch (error) {
+console.error('Error during agent sign-up:', error);
+toast.error("Something went wrong with the registration");
+}
+}
   return (
     <section>
        <div className="grid grid-cols-1 md:grid-cols-2"> 
@@ -75,9 +78,10 @@ export default function AgentSignUp() {
         <div className=" justify-start text-center md:text-left text-xl md:text-4xl py-8 text-black">
             Create agent account
           </div>
+          
           <input 
           type="text" 
-          id="name" 
+          id="firstName" 
           value={firstName} 
           onChange={onChange}
           placeholder="First name"
@@ -85,10 +89,18 @@ export default function AgentSignUp() {
           />
           <input 
           type="text" 
-          id="name" 
+          id="lastName" 
           value={lastName} 
           onChange={onChange}
           placeholder="Last name"
+          className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
+          />
+          <input 
+          type="text" 
+          id="agency" 
+          value={agency} 
+          onChange={onChange}
+          placeholder="Agency name"
           className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
           />
            <input 

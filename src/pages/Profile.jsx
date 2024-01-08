@@ -23,10 +23,12 @@ export default function Profile() {
   const [listings, setListings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    name: auth.currentUser.displayName,
+    firstName: auth.currentUser.displayName.split(' ')[0] || '',
+    lastName: auth.currentUser.displayName.split(' ')[1] || '',
+    agency: auth.currentUser.displayName.split(' ')[2] || '',
     email: auth.currentUser.email,
   });
-  const { name, email } = formData;
+  const { firstName, lastName, agency, email } = formData;
   const [isAgentUser, setIsAgentUser] = useState(false);
   const [userStatus, setUserStatus] = useState(null);
 
@@ -104,16 +106,20 @@ export default function Profile() {
 
   async function onSubmit() {
     try {
-      if (auth.currentUser.displayName !== name) {
+      const displayName = `${firstName} ${lastName} ${agency}`;
+  
+      if (auth.currentUser.displayName !== displayName) {
         // Update display name in firebase auth
         await updateProfile(auth.currentUser, {
-          displayName: name,
+          displayName,
         });
-
-        // Update name in Firestore
-        const docRef = doc(db, "users", auth.currentUser.uid);
-        await updateDoc(docRef, {
-          name,
+  
+        // Update name in Firestore based on user type (agent or regular user)
+        const userDocRef = doc(db, isAgentUser ? 'agents' : 'users', auth.currentUser.uid);
+        await updateDoc(userDocRef, {
+          firstName,
+          lastName,
+          agency,
         });
       }
       toast.success("Profile details updated");
@@ -130,22 +136,48 @@ export default function Profile() {
   return (
     <>
       <section className="px-6 pt-6 max-w-6xl mx-auto flex justify-center items-center flex-col">
-        <h1 className="text-xl md:text-2xl text-center mt-6">My Profile</h1>
         <div className="w-full md:w-[50%] mt-6 px-3">
+        <h1 className="text-xl md:text-2xl mt-6 mb-12">My Profile</h1>
           <form>
-            {/* Name Input*/}
+          <p className="mb-2">First name</p>
             <input
               type="text"
-              id="name"
-              value={name}
+              id="firstName"
+              value={firstName}
               disabled={!changeDetail}
               onChange={onChange}
               className={`mb-6 w-full px-4 py-2 text-md text-gray-700 bg-white hover:shadow-xl rounded shadow-lg transition ease-in-out ${
                 changeDetail && "bg-gray-200 focus:bg-gray-200"
               }`}
             />
+            <p className="mb-2">Last name</p>
+            <input
+              type="text"
+              id="lastName"
+              value={lastName}
+              disabled={!changeDetail}
+              onChange={onChange}
+              className={`mb-6 w-full px-4 py-2 text-md text-gray-700 bg-white hover:shadow-xl rounded shadow-lg transition ease-in-out ${
+                changeDetail && "bg-gray-200 focus:bg-gray-200"
+              }`}
+            />
+           {isAgentUser && (
+            <div>
+             <p className="mb-2">Agency</p>
+             <input
+             type="text"
+             id="agency"
+             value={agency}
+             disabled={!changeDetail}
+             onChange={onChange}
+             className={`mb-6 w-full px-4 py-2 text-md text-gray-700 bg-white hover:shadow-xl rounded shadow-lg transition ease-in-out ${
+             changeDetail && "bg-gray-200 focus:bg-gray-200"
+             }`}
+             />
+            </div>
+          )}
 
-            {/* Email input*/}
+            <p className="mb-2">Email</p>
             <input
               type="email"
               id="email"
@@ -161,14 +193,14 @@ export default function Profile() {
                     changeDetail && onSubmit();
                     setChangeDetail((prevState) => !prevState);
                   }}
-                  className="text-black capitalize font-semibold hover:text-gray-300 transition ease-in-out duration-150 ml-1 cursor-pointer"
+                  className="text-black capitalize hover:text-gray-300 transition ease-in-out duration-150 ml-1 cursor-pointer"
                 >
                   {changeDetail ? "Apply Change" : "Edit Profile"}
                 </span>
               </p>
               <p
                 onClick={onLogout}
-                className="text-black font-semibold capitalize hover:text-gray-300 transition ease-in-out duration-200 cursor-pointer"
+                className="text-black capitalize hover:text-gray-300 transition ease-in-out duration-200 cursor-pointer"
               >
                 Sign out
               </p>

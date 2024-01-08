@@ -64,7 +64,7 @@ export default function CreateListing() {
     name: "",
     yearBuilt: 2018,
     size: 0,
-    homeType: "villa",
+    listingType: "villa",
     bedrooms: 1,
     bathrooms: 1,
     parking: false,
@@ -84,7 +84,7 @@ export default function CreateListing() {
     name,
     yearBuilt,
     size,
-    homeType,
+    listingType,
     bedrooms,
     bathrooms,
     parking,
@@ -138,11 +138,11 @@ export default function CreateListing() {
       }));
     }
 
-    // Handle 'homeType' selection from a dropdown
-    if (e.target.id === "homeType") {
+    // Handle 'listingType' selection from a dropdown
+    if (e.target.id === "listingType") {
       setFormData((prevState) => ({
         ...prevState,
-        homeType: e.target.value,
+        listingType: e.target.value,
       }));
     }
   }
@@ -277,8 +277,8 @@ export default function CreateListing() {
   const renderStep1 = () => {
     return (
       <div>
-        <h1 className="text-3xl mb-12 font-bold">Step 1 - Create a Listing</h1>
-        <p className="text-lg mt-6 font-semibold">Sell / Rent</p>
+        <h1 className="text-3xl mb-12">Step 1 - Listing</h1>
+        <p className="text-lg mt-6 ">Sell / Rent</p>
         <div className="flex">
           <button
             type="button"
@@ -307,10 +307,10 @@ export default function CreateListing() {
             rent
           </button>
         </div>
-         <p className="text-lg mt-6 font-semibold">Home Type</p>
+         <p className="text-lg mt-6 ">Listing Type</p>
           <select
-            id="homeType"
-            value={homeType}
+            id="listingType"
+            value={listingType}
             onChange={onChange}
             className="w-full mb-6 px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
           >
@@ -321,7 +321,7 @@ export default function CreateListing() {
           </select>
         <div className="flex space-x-6 mb-6">
   <div className="flex-1">
-    <p className="text-lg font-semibold">Year Built</p>
+    <p className="text-lg ">Year Built</p>
     <select
       id="yearBuilt"
       value={yearBuilt}
@@ -337,7 +337,7 @@ export default function CreateListing() {
     </select>
   </div>
   <div className="flex-1">
-    <p className="text-lg font-semibold">Size</p>
+    <p className="text-lg ">Size</p>
     <div className="flex w-full justify-center items-center space-x-6">
       <div className="relative w-full">
         <input
@@ -349,7 +349,7 @@ export default function CreateListing() {
           required
           className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
         />
-        <div className="absolute right-10 top-1/2 transform -translate-y-1/2 text-md whitespace-nowrap">
+        <div className="absolute right-4 sm:right-10 top-1/2 transform -translate-y-1/2 text-md whitespace-nowrap">
           m²
         </div>
       </div>
@@ -359,7 +359,7 @@ export default function CreateListing() {
           
         <div className="flex space-x-6 mb-6">
           <div>
-            <p className="text-lg font-semibold">Beds</p>
+            <p className="text-lg ">Beds</p>
             <input
               type="number"
               id="bedrooms"
@@ -372,7 +372,7 @@ export default function CreateListing() {
             />
           </div>
           <div>
-            <p className="text-lg font-semibold">Baths</p>
+            <p className="text-lg ">Baths</p>
             <input
               type="number"
               id="bathrooms"
@@ -385,7 +385,7 @@ export default function CreateListing() {
             />
           </div>
         </div>
-        <p className="text-lg mt-6 font-semibold">Parking spot</p>
+        <p className="text-lg mt-6 ">Parking spot</p>
         <div className="flex">
           <button
             type="button"
@@ -410,7 +410,7 @@ export default function CreateListing() {
             no
           </button>
         </div>
-        <p className="text-lg mt-6 font-semibold">Furnished</p>
+        <p className="text-lg mt-6 ">Furnished</p>
         <div className="flex">
           <button
             type="button"
@@ -443,8 +443,8 @@ export default function CreateListing() {
   const renderStep2 = () => {
     return (
       <div>
-        <h1 className="text-3xl mb-12 font-bold">Step 2 - Address</h1>
-        <p className="text-lg mt-6 font-semibold">City</p>
+        <h1 className="text-3xl mb-12 ">Step 2 - Address</h1>
+        <p className="text-lg mt-6 ">City</p>
       <select
         id="city"
         value={formData.city}
@@ -458,7 +458,7 @@ export default function CreateListing() {
           </option>
         ))}
       </select>
-        <p className="text-lg mt-6 font-semibold">Address</p>
+        <p className="text-lg mt-6 ">Address</p>
         <textarea
           type="text"
           id="address"
@@ -472,7 +472,7 @@ export default function CreateListing() {
           <div className="flex space-x-6 justify-start mb-6">
             <div className="">
 
-              <p className="text-lg font-semibold">Latitude</p> 
+              <p className="text-lg ">Latitude</p> 
               <input 
               type="number" 
               id="latitude" 
@@ -484,7 +484,7 @@ export default function CreateListing() {
               className="w-full mb-6 px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"/>
             </div>
             <div>
-              <p className="text-lg font-semibold">Longitude</p> 
+              <p className="text-lg ">Longitude</p> 
               <input 
               type="number" 
               id="longitude" 
@@ -497,7 +497,7 @@ export default function CreateListing() {
             </div>
           </div>
         )}
-        <button className="mb-6 px-3 py-2 mt- bg-white border-2 border-black text-black rounded-full shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"  onClick={prevStep}><GrFormPrevious className="inline text-lg" /></button>
+        <button className="mb-6 px-3 py-2 mt- bg-gray-200 border-2 border-black text-black rounded-full shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"  onClick={prevStep}><GrFormPrevious className="inline text-lg" /></button>
         <button className="mb-6 px-3 py-2 ml-2 mt- bg-white border-2 border-black text-black rounded-full shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"  onClick={nextStep}><GrFormNext className="inline text-lg" /></button>
       </div>
     );
@@ -506,8 +506,8 @@ export default function CreateListing() {
   const renderStep3 = () => {
     return (
       <div>
-        <h1 className="text-3xl mb-12 font-bold">Step 3 - Princing</h1>
-        <p className="text-lg font-semibold">Offer</p>
+        <h1 className="text-3xl mb-12">Step 3 - Pricing</h1>
+        <p className="text-lg ">Offer</p>
         <div className="flex mb-6">
           <button
             type="button"
@@ -534,7 +534,7 @@ export default function CreateListing() {
         </div>
         <div className="flex items-center mb-6">
           <div className="">
-            <p className="text-lg font-semibold">Regular price</p>
+            <p className="text-lg ">Regular price</p>
             <div className="flex w-full justify-center items-center space-x-6">
               <input
                 type="number"
@@ -557,7 +557,7 @@ export default function CreateListing() {
         {offer && (
           <div className="flex items-center mb-6">
             <div className="">
-              <p className="text-lg font-semibold">Discounted price</p>
+              <p className="text-lg ">Discounted price</p>
               <div className="flex w-full justify-center items-center space-x-6">
                 <input
                   type="number"
@@ -582,7 +582,7 @@ export default function CreateListing() {
         )}
         
         
-        <button className="mb-6 px-3 py-2 mt- bg-white border-2 border-black text-black rounded-full shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"  onClick={prevStep}><GrFormPrevious className="inline text-lg" /></button>
+        <button className="mb-6 px-3 py-2 mt- bg-gray-200 border-2 border-black text-black rounded-full shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"  onClick={prevStep}><GrFormPrevious className="inline text-lg" /></button>
         <button className="mb-6 px-3 py-2 ml-2 mt- bg-white border-2 border-black text-black rounded-full shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"  onClick={nextStep}><GrFormNext className="inline text-lg" /></button>
       </div>
     );
@@ -591,8 +591,8 @@ export default function CreateListing() {
   const renderStep4 = () => {
     return (
       <div>
-        <h1 className="text-3xl mb-12 font-bold">Step 4 - Images / Description</h1>
-         <p className="text-lg font-semibold">Description</p>
+        <h1 className="text-3xl mb-12">Step 4 - Images</h1>
+         <p className="text-lg ">Description</p>
         <textarea
           type="text"
           id="description"
@@ -603,7 +603,7 @@ export default function CreateListing() {
           className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black mb-6"
         />
         <div className="mb-6">
-          <p className="text-lg font-semibold">Images</p>
+          <p className="text-lg ">Images</p>
           <p className="text-gray-600">
             The first image will be the cover (max 6)
           </p>
@@ -618,7 +618,7 @@ export default function CreateListing() {
           />
         </div>
         <button type="submit" className="mb-6 w-full px-7 py-3 bg-black text-white font-medium text-sm uppercase rounded shadow-md hover:opacity-70 hover:shadow-lg focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out">Create Listing</button>
-        <button className="mb-6 px-3 py-2 mt- bg-white border-2 border-black text-black rounded-full shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"  onClick={prevStep}><GrFormPrevious className="inline text-lg" /></button>
+        <button className="mb-6 px-3 py-2 mt- bg-gray-200 border-2 border-black text-black rounded-full shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"  onClick={prevStep}><GrFormPrevious className="inline text-lg" /></button>
       </div>
     );
   };
@@ -627,8 +627,8 @@ export default function CreateListing() {
     <AgentGuard>
       
     <main>
-    <div className="px-4 sm:px-2 py-2 grid grid-cols-1 md:grid-cols-2">
-      <div className="hidden sm:grid w-full h-48 grid-cols-1 grid-rows-1 overflow-hidden bg-cover md:h-screen bg-blue-100 ">
+    <div className="px-4  grid grid-cols-1 md:grid-cols-2">
+      <div className="hidden sm:grid w-full h-42 grid-cols-1 grid-rows-1 overflow-hidden bg-cover md:h-screen bg-blue-100 ">
       <div className='h-full  col-span-1 col-start-1 row-span-1 row-start-1"'>
 
       </div>

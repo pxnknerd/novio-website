@@ -109,12 +109,12 @@ export default function Home() {
         alt="keyz"
         className="object-cover w-full h-full"
       />
-     <h1 className="text-white text-center absolute inset-0 flex items-center justify-center mb-36 sm:mb-44 text-2xl sm:text-4xl font-bold">
+     <h1 className="text-white text-center absolute inset-0 flex items-center justify-center mb-36 sm:mb-44 text-2xl sm:text-4xl ">
   The #1er destination <br /> for real estate in Morocco.
 </h1>
       
       <div className="absolute text-center bottom-32 sm:bottom-6 left-1/2 transform -translate-x-1/2">
-        <div className="text-xl mb-4 sm:text-2xl text-bold">
+        <div className="text-xl mb-4 sm:text-2xl">
       <a
             href="/category/sale"
             className="text-white hover:opacity-70 transition ease-in-out duration-200 mr-4 cursor-pointer"
@@ -151,14 +151,14 @@ export default function Home() {
 </div>
       </div>
     </div>
-      <div className=" mx-auto pt-4 space-y-6">
+      <div className=" mx-auto pt-4 space-y-6 max-w-6xl">
         {offerListings && offerListings.length > 0 && (
           <div className="m-6 mb-6">
-            <h2 className="px-3 text-2xl mt-- font-semibold">Recent Offers</h2>
+            <h2 className="px-3 text-2xl mt-- ">Recent Offers</h2>
             <Link to="/Offers">
               <p className="px-3 text-sm text-black opacity-70 hover:text-black hover:opacity-100 transition duration-150 ease-in-out">show more offers</p>            
             </Link>
-            <ul className="sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <ul className="sm:grid sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
               {offerListings.map((listing)=>(
                 <ListingItem
                 key={listing.id}
@@ -171,11 +171,11 @@ export default function Home() {
         )}
         {rentListings && rentListings.length > 0 && (
           <div className="m-6 mb-6">
-            <h2 className="px-3 text-2xl mt-- font-semibold">Places for rent</h2>
+            <h2 className="px-3 text-2xl ">Places for rent</h2>
             <Link to="/category/rent">
               <p className="px-3 text-sm text-black opacity-70 hover:text-black hover:opacity-100 transition duration-150 ease-in-out">show more places for rent</p>            
             </Link>
-            <ul className="sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <ul className="sm:grid sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
               {rentListings.map((listing)=>(
                 <ListingItem
                 key={listing.id}
@@ -188,11 +188,11 @@ export default function Home() {
         )}
         {saleListings && saleListings.length > 0 && (
           <div className="m-6 mb-6">
-            <h2 className="px-3 text-2xl mt-- font-semibold">Places for sale</h2>
+            <h2 className="px-3 text-2xl mt-- ">Places for sale</h2>
             <Link to="/category/sale">
               <p className="px-3 text-sm text-black opacity-70 hover:text-black hover:opacity-100 transition duration-150 ease-in-out">show more places for sale</p>            
             </Link>
-            <ul className="sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <ul className="sm:grid sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
               {saleListings.map((listing)=>(
                 <ListingItem
                 key={listing.id}

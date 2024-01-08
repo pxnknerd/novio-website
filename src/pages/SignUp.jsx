@@ -33,15 +33,19 @@ export default function SignUp() {
         email, 
         password
         );
-        updateProfile(auth.currentUser, {
-          displayName: `${firstName} ${lastName}`,
-        });
+        
       const user = userCredential.user;
       const formDataCopy = {...formData};
       delete formDataCopy.password;
       formDataCopy.timestamp = serverTimestamp();
 
-      await setDoc(doc(db, "users", user.uid), formDataCopy)
+      await Promise.all([
+        updateProfile(auth.currentUser, {
+          displayName: `${firstName} ${lastName}`,
+        }),
+        setDoc(doc(db, "users", user.uid), formDataCopy),
+      ]);
+
       toast.success("sign up was successful")
       navigate("/");
     } catch (error) {
@@ -75,18 +79,18 @@ export default function SignUp() {
           </div>
           <input 
           type="text" 
-          id="name" 
+          id="firstName" 
           value={firstName} 
           onChange={onChange}
-          placeholder="First name"
+          placeholder="Full name"
           className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
           />
           <input 
           type="text" 
-          id="name" 
+          id="lastName" 
           value={lastName} 
           onChange={onChange}
-          placeholder="Last name"
+          placeholder="Full name"
           className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
           />
            <input 
