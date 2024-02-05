@@ -67,7 +67,7 @@ export default function Listing() {
                  For {listing.type === "rent" ? "Rent" : "Sale"}
                   </p>
             </div>
-            <p className='text-lg sm:text-2xl font-bold mb-3 text-black'>
+            <p className='text-lg  sm:text-2xl font-bold mb-3 text-black'>
             {listing.offer ? (
             <div className="flex items-center">
             <span className="mr-2">
@@ -76,7 +76,7 @@ export default function Listing() {
             .replace(/\B(?=(\d{3})+(?!\d))/g, ",")} DH
             {listing.type === "rent" ? " / month" : ""}
             </span>
-            <span className="line-through text-gray-500">
+            <span className="line-through  text-gray-500">
             {listing.regularPrice
             .toString()
             .replace(/\B(?=(\d{3})+(?!\d))/g, ",")} DH

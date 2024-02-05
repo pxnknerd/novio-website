@@ -7,10 +7,11 @@ import { db } from '../firebase';
 import { doc, getDoc, getDocs, orderBy, query, where } from 'firebase/firestore';
 import { Link } from "react-router-dom";
 import CreateListingPopUp from './CreateListingPopUp';
+import { FaSearch } from 'react-icons/fa';
 
 
 
-export default function Header() {
+export default function SecondHeader() {
   const [pageState, setPageState] = useState('Sign in');
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isCreateListingPopUpOpen, setCreateListingPopUpOpen] = useState(false);
@@ -114,24 +115,34 @@ useEffect(() => {
       return agentDoc.exists();
     };
   return (
-    <div className="bg-white border-b-[10px] mt-3 border-white top-0 z-40">
-      <header className="flex justify-between items-center px-4 md:px-8 mx-auto max-w-6xl">
-        <div className="flex container mx-auto w-full justify-center  md:hidden">
-          <div className="flex justify-start w-full">
-            <IoMenu className="w-8 h-8" onClick={toggleMobileMenu} />
+    <div className="bg-white mt-4 mb-4 top-0 z-40">
+      <header className="flex justify-between items-center px-4 md:px-8 mx-auto max-w-8xl">
+        <div className="flex container mx-auto w-full sm:hidden">
+          <div className="flex items-center w-full">
+            <IoMenu className="w-8 h-8 mr-4" onClick={toggleMobileMenu} />
+            <a>
+              <img
+                src={process.env.PUBLIC_URL + "/BeyttyIcon.png"}
+                alt="Logo"
+                className="h-8"
+                onClick={() => navigate("/")}
+              />
+            </a>
+            <div className="relative flex ml-5 rounded h-10">
+              <input
+                type="search"
+                className="w-full rounded bg-gray-200 border-gray-200"
+                placeholder="Search Address"
+              />
+              <div className="absolute right-4 text-black top-0 h-full flex items-center">
+                <FaSearch />
+              </div>
+            </div>
           </div>
-          <a className="absolute">
-            <img
-              src={process.env.PUBLIC_URL + "/Logo.png"}
-              alt="Logo"
-              className=" h-8"
-              onClick={() => navigate("/")}
-            />
-          </a>
         </div>
 
-        <div className="hidden mb-2 justify-middle md:flex">
-          <ul className="md:flex  space-x-8 list-none">
+        <div className="hidden mb-2 justify-middle sm:flex">
+          <ul className="sm:flex space-x-4 md:space-x-8 list-none">
             <li
               className={`cursor-pointer pt-3 hover:text-red-800 text-lg  ${
                 pathMatchRoute("")
@@ -164,7 +175,7 @@ useEffect(() => {
             </li>
           </ul>
         </div>
-        <div className="hidden md:flex">
+        <div className="hidden sm:flex">
           <img
             src={process.env.PUBLIC_URL + "/Logo.png"}
             alt="Logo"
@@ -172,7 +183,7 @@ useEffect(() => {
             onClick={() => navigate("/")}
           />
         </div>
-        <div className="hidden md:flex space-x-2 items-center">
+        <div className="hidden sm:flex space-x-2 items-center">
           {pageState === "Sign in" && (
             <>
               <p

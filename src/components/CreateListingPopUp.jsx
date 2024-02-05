@@ -1,13 +1,18 @@
-import { useState, useRef } from "react";
+import { React, useState, useRef, useEffect } from "react";
 import Spinner from "../components/Spinner";
 import { toast } from "react-toastify";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import {getAuth} from "firebase/auth"
-import {v4 as uuidv4} from "uuid";
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
+import { getAuth } from "firebase/auth";
+import { v4 as uuidv4 } from "uuid";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { useNavigate } from "react-router-dom";
-import AgentGuard from '../components/AgentGuard';
+import AgentGuard from "../components/AgentGuard";
 import { GrFormNext } from "react-icons/gr";
 import { GrFormPrevious } from "react-icons/gr";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -15,6 +20,8 @@ import "leaflet/dist/leaflet.css";
 import L, { Icon } from "leaflet";
 import "leaflet-providers/leaflet-providers";
 import MyPin from "../assets/svg/MyPin.svg";
+
+
 
 
 
@@ -27,16 +34,17 @@ const customMarkerIcon = new L.Icon({
 });
 
 
-export default function CreateListing() {
+
+const CreateListingPopUp = ({ closePopUp }) => {
   console.log("CreateListingPopUp Rendered");
   const navigate = useNavigate();
+  const mapRef = useRef(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const auth = getAuth();
-  const [mapCenter, setMapCenter] = useState([33.5731, -7.5898]);
+  const [mapCenter, setMapCenter] = useState([33.5731, -7.5898]); // Casablanca coordinates
   const [markerPosition, setMarkerPosition] = useState([33.5731, -7.5898]);
-  const mapRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     type: "rent",
@@ -73,226 +81,225 @@ export default function CreateListing() {
     regularPrice,
     discountedPrice,
   } = formData;
-   function onChange(e) {
-     let boolean = null;
-     if (e.target.value === "true") {
-       boolean = true;
-     }
-     if (e.target.value === "false") {
-       boolean = false;
-     }
-     if (e.target.files) {
-       const selectedImages = Array.from(e.target.files);
-       setImages(selectedImages);
 
-       const previews = selectedImages.map((image) =>
-         URL.createObjectURL(image)
-       );
-       setImagePreviews(previews);
-     }
-     if (!e.target.files) {
-       setFormData((prevState) => ({
-         ...prevState,
-         [e.target.id]: boolean ?? e.target.value,
-       }));
-     }
 
-     if (e.target.id === "size" && isNaN(e.target.value)) {
-       return; // Ignore non-numeric input
-     }
+  function onChange(e) {
+    let boolean = null;
+    if (e.target.value === "true") {
+      boolean = true;
+    }
+    if (e.target.value === "false") {
+      boolean = false;
+    }
+    if (e.target.files) {
+      const selectedImages = Array.from(e.target.files);
+      setImages(selectedImages);
 
-     // Handle 'yearBuilt' selection from a dropdown
-     if (e.target.id === "yearBuilt") {
-       setFormData((prevState) => ({
-         ...prevState,
-         yearBuilt: parseInt(e.target.value),
-       }));
-     }
+      const previews = selectedImages.map((image) =>
+        URL.createObjectURL(image)
+      );
+      setImagePreviews(previews);
+    }
+    if (!e.target.files) {
+      setFormData((prevState) => ({
+        ...prevState,
+        [e.target.id]: boolean ?? e.target.value,
+      }));
+    }
 
-     // Handle 'listingType' selection from a dropdown
-     if (e.target.id === "listingType") {
-       setFormData((prevState) => ({
-         ...prevState,
-         listingType: e.target.value,
-       }));
-     }
-   }
-   async function onSubmit(e) {
-     e.preventDefault();
-     // Add validation for each form field
-     const requiredFields = [
-       "address",
-       "type",
-       "listingType",
-       "yearBuilt",
-       "size",
-       "bedrooms",
-       "bathrooms",
-       "description",
-       "images",
-     ];
+    if (e.target.id === "size" && isNaN(e.target.value)) {
+      return; // Ignore non-numeric input
+    }
 
-     for (const field of requiredFields) {
-       if (!formData[field]) {
-         toast.error(
-           `Please fill in the ${field
-             .replace(/([A-Z])/g, " $1")
-             .toLowerCase()}`
-         );
-         return;
-       }
-     }
-     setLoading(true);
-     if (+discountedPrice >= +regularPrice) {
-       toast.error("Discounted price needs to be less than regular price");
-       setLoading(false); // Set loading state to false here
-       return;
-     }
+    // Handle 'yearBuilt' selection from a dropdown
+    if (e.target.id === "yearBuilt") {
+      setFormData((prevState) => ({
+        ...prevState,
+        yearBuilt: parseInt(e.target.value),
+      }));
+    }
 
-     if (images.length > 6) {
-       setLoading(false);
-       toast.error("maximum 6 images are allowed");
-       return;
-     }
+    // Handle 'listingType' selection from a dropdown
+    if (e.target.id === "listingType") {
+      setFormData((prevState) => ({
+        ...prevState,
+        listingType: e.target.value,
+      }));
+    }
+  }
+  async function onSubmit(e) {
+    e.preventDefault();
+    // Add validation for each form field
+    const requiredFields = [
+      "address",
+      "type",
+      "listingType",
+      "yearBuilt",
+      "size",
+      "bedrooms",
+      "bathrooms",
+      "description",
+      "images",
+    ];
 
-     async function storeImage(image) {
-       return new Promise((resolve, reject) => {
-         const storage = getStorage();
-         const filename = `${auth.currentUser.uid}-${image.name}-${uuidv4()}`;
-         const storageRef = ref(storage, filename);
-         const uploadTask = uploadBytesResumable(storageRef, image);
-         uploadTask.on(
-           "state_changed",
-           (snapshot) => {
-             // Observe state change events such as progress, pause, and resume
-             // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-             const progress =
-               (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-             console.log("Upload is " + progress + "% done");
-             switch (snapshot.state) {
-               case "paused":
-                 console.log("Upload is paused");
-                 break;
-               case "running":
-                 console.log("Upload is running");
-                 break;
-             }
-           },
-           (error) => {
-             // Handle unsuccessful uploads
-             reject(error);
-           },
-           () => {
-             // Handle successful uploads on complete
-             // For instance, get the download URL: https://firebasestorage.googleapis.com/...
-             getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-               resolve(downloadURL);
-             });
-           }
-         );
-       });
-     }
+    for (const field of requiredFields) {
+      if (!formData[field]) {
+        toast.error(
+          `Please fill in the ${field.replace(/([A-Z])/g, " $1").toLowerCase()}`
+        );
+        return;
+      }
+    }
+    setLoading(true);
+    if (+discountedPrice >= +regularPrice) {
+      toast.error("Discounted price needs to be less than regular price");
+      setLoading(false); // Set loading state to false here
+      return;
+    }
 
-     const imgUrls = await Promise.all(
-       [...images].map((image) => storeImage(image))
-     ).catch((error) => {
-       setLoading(false);
-       toast.error("Images not uploaded");
-       return;
-     });
+    if (images.length > 6) {
+      setLoading(false);
+      toast.error("maximum 6 images are allowed");
+      return;
+    }
 
-     const formDataCopy = {
-       ...formData,
-       imgUrls,
-       timestamp: serverTimestamp(),
-       userRef: auth.currentUser.uid,
-       latitude: markerPosition[0],
-       longitude: markerPosition[1],
-     };
+    async function storeImage(image) {
+      return new Promise((resolve, reject) => {
+        const storage = getStorage();
+        const filename = `${auth.currentUser.uid}-${image.name}-${uuidv4()}`;
+        const storageRef = ref(storage, filename);
+        const uploadTask = uploadBytesResumable(storageRef, image);
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            // Observe state change events such as progress, pause, and resume
+            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log("Upload is " + progress + "% done");
+            switch (snapshot.state) {
+              case "paused":
+                console.log("Upload is paused");
+                break;
+              case "running":
+                console.log("Upload is running");
+                break;
+            }
+          },
+          (error) => {
+            // Handle unsuccessful uploads
+            reject(error);
+          },
+          () => {
+            // Handle successful uploads on complete
+            // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+              resolve(downloadURL);
+            });
+          }
+        );
+      });
+    }
 
-     delete formDataCopy.images;
-     !formDataCopy.offer && delete formDataCopy.discountedPrice;
-     const docRef = await addDoc(collection(db, "listings"), formDataCopy);
-     setLoading(false);
-     toast.success("Listing created");
+    const imgUrls = await Promise.all(
+      [...images].map((image) => storeImage(image))
+    ).catch((error) => {
+      setLoading(false);
+      toast.error("Images not uploaded");
+      return;
+    });
+
+    const formDataCopy = {
+      ...formData,
+      imgUrls,
+      timestamp: serverTimestamp(),
+      userRef: auth.currentUser.uid,
+      latitude: markerPosition[0],
+      longitude: markerPosition[1],
+    };
+
+    delete formDataCopy.images;
+    !formDataCopy.offer && delete formDataCopy.discountedPrice;
+    const docRef = await addDoc(collection(db, "listings"), formDataCopy);
+    setLoading(false);
+    toast.success("Listing created");
+    closePopUp();
      navigate(`/results/${docRef.id}`);
-   }
-
-   if (loading) {
-     return <Spinner />;
-   }
-
-   const stepTitles = [
-     "Location",
-     "Listing",
-     "Pricing",
-     "Description",
-     "Images",
-   ];
-
-   const renderImagePreviews = () => {
-     const firstRowImages = imagePreviews.slice(0, 4);
-     const secondRowImages = imagePreviews.slice(4, 8);
-
-     const renderRow = (rowImages, rowKey) => (
-       <div key={rowKey} className="flex space-x-2 mb-6">
-         {rowImages.map((preview, index) => (
-           <div key={index} className="relative">
-             <img
-               src={preview}
-               alt={`Preview ${index}`}
-               className="h-20 w-20"
-             />
-             <button
-               type="button"
-               onClick={() => handleImageRemove(index + rowKey * 4)}
-               className="absolute font-bold top-0 right-1 text-sm text-white rounded-full cursor-pointer"
-             >
-               x
-             </button>
-           </div>
-         ))}
-       </div>
-     );
-
-     return (
-       <>
-         {renderRow(firstRowImages, 0)}
-         {renderRow(secondRowImages, 1)}
-       </>
-     );
-   };
-
-   const handleImageRemove = (index) => {
-     const updatedImages = [...images];
-     updatedImages.splice(index, 1);
-
-     const updatedPreviews = updatedImages.map((image) =>
-       URL.createObjectURL(image)
-     );
-
-     setImages(updatedImages);
-     setImagePreviews(updatedPreviews);
-   };
+  }
   
 
-  const renderStepIndicator = () => {
-    return (
-      <div className="flex items-center justify-between mb-8 mt-4">
-        {stepTitles.map((title, index) => (
-          <div
-            key={index}
-            className={`flex-1 h-2 ${
-              index + 1 < currentStep
-                ? "bg-custom-red" // Highlight the steps before the current step
-                : "bg-gray-300"
-            }`}
-          ></div>
-        ))}
-      </div>
-    );
-  };
+  if (loading) {
+    return <Spinner />;
+  }
+ 
+  const stepTitles = [
+    "Location",
+    "Listing",
+    "Pricing",
+    "Description",
+    "Images",
+  ];
 
+const renderImagePreviews = () => {
+  const firstRowImages = imagePreviews.slice(0, 4);
+  const secondRowImages = imagePreviews.slice(4, 8);
+
+  const renderRow = (rowImages, rowKey) => (
+    <div key={rowKey} className="flex space-x-2 mb-6">
+      {rowImages.map((preview, index) => (
+        <div key={index} className="relative">
+          <img src={preview} alt={`Preview ${index}`} className="h-20 w-20" />
+          <button
+            type="button"
+            onClick={() => handleImageRemove(index + rowKey * 4)}
+            className="absolute top-0 right-1 text-sm text-white rounded-full cursor-pointer"
+          >
+            x
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <>
+      {renderRow(firstRowImages, 0)}
+      {renderRow(secondRowImages, 1)}
+    </>
+  );
+};
+
+const handleImageRemove = (index) => {
+  const updatedImages = [...images];
+  updatedImages.splice(index, 1);
+
+  const updatedPreviews = updatedImages.map((image) =>
+    URL.createObjectURL(image)
+  );
+
+  setImages(updatedImages);
+  setImagePreviews(updatedPreviews);
+};
+
+
+const renderStepIndicator = () => {
+  return (
+    <div className="flex items-center justify-between mb-8 mt-4">
+      {stepTitles.map((title, index) => (
+        <div
+          key={index}
+          className={`flex-1 h-2 ${
+            index + 1 < currentStep
+              ? "bg-custom-red" // Highlight the steps before the current step
+              : "bg-gray-300"
+          }`}
+        ></div>
+      ))}
+    </div>
+  );
+};
+
+  
   const nextStep = () => {
     setCurrentStep(currentStep + 1);
   };
@@ -317,15 +324,14 @@ export default function CreateListing() {
         return null;
     }
   };
-
 const renderStep1 = () => {
- const handleDragEnd = (event) => {
-   const { lat, lng } = event.target.getLatLng();
-   setMarkerPosition([lat, lng]);
-   setMapCenter([lat, lng]);
-      mapRef.current.panTo([lat, lng], { animate: true, duration: 0.5 });
+  const handleDragEnd = (event) => {
+    const { lat, lng } = event.target.getLatLng();
+    setMarkerPosition([lat, lng]);
+    setMapCenter([lat, lng]);
+    mapRef.current.panTo([lat, lng], { animate: true, duration: 0.5 });
+  };
 
- };
 
   return (
     <div>
@@ -346,7 +352,7 @@ const renderStep1 = () => {
       </p>
       <MapContainer
         center={mapCenter}
-        zoom={8}
+        zoom={11}
         style={{ height: "400px", width: "100%" }}
         ref={mapRef}
       >
@@ -570,7 +576,6 @@ const renderStep1 = () => {
       </div>
     );
   };
-
   const renderStep3 = () => {
     return (
       <div>
@@ -737,21 +742,20 @@ const renderStep1 = () => {
       </div>
     );
   };
-
-return (
+  return (
     <AgentGuard>
       <main>
-        <div className="flex justify-center w-full mx-auto">
         <form
           onSubmit={onSubmit}
-          className="max-w-sm px-4"
+          className="max-w-md px-2 w-[28rem] mx-auto bg-white rounded-md  relative"
           onClick={(e) => e.stopPropagation()} 
         >
           {renderStepIndicator()}
           {renderStepContent()}
         </form>
-        </div>
       </main>
     </AgentGuard>
   );
 };
+export default CreateListingPopUp;
+

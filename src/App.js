@@ -13,55 +13,77 @@ import 'react-toastify/dist/ReactToastify.css';
 import CreateListing from "./pages/CreateListing"
 import Listing from "./pages/Listing"
 import EditListing from "./pages/EditListing";
-import Category from "./pages/Category";
+import Results from "./pages/Results";
 import AgentSignUp from "./pages/AgentSignUp";
 import AgentSignIn from "./pages/AgentSignIn";
 import Footer from "./components/Footer"
 import AgentGuard from './components/AgentGuard';
+import TermsAndServices from "./pages/TermsAndServices";
+import Help from "./pages/Help";
+import EmailVerificationPage from "./pages/EmailVerificationPage";
+import AgentVerificationPage from "./pages/AgentVerificationPage";
+import SecondHeader from "./components/SecondHeader";
 
 function App() {
 
   return (
     <>
       <Router>
-        <HeaderWithCondition/>
-        <div className="min-h-screen">
+        <HeaderWithCondition />
+        <SecondHeaderWithCondition />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/profile" element={<PrivateRoute/>}>
+          <Route path="/profile" element={<PrivateRoute />}>
             <Route path="/profile" element={<Profile />} />
           </Route>
           <Route path="/sign-in" element={<SignIn />} />
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/agent-sign-up" element={<AgentSignUp />} />
           <Route path="/agent-sign-in" element={<AgentSignIn />} />
+          <Route path="/help" element={<Help />} />
+          <Route
+            path="/email-verification"
+            element={<EmailVerificationPage />}
+          />
+          <Route
+            path="/agent-verification"
+            element={<AgentVerificationPage />}
+          />
+          <Route path="/terms-and-services" element={<TermsAndServices />} />
           <Route path="/offers" element={<Offers />} />
-          <Route path="/category/:categoryName" element={<Category />} />
-          <Route path="/category/:categoryName/:listingId" element={<Listing />}/>
-          <Route path="/create-listing" element={<PrivateRoute/>}>
-          <Route path="/create-listing" element={<AgentGuard> <CreateListing /> </AgentGuard>} />
+          <Route path="/results" element={<Results />} />
+          <Route path="/results/:listingId" element={<Listing />} />
+          <Route path="/create-listing" element={<PrivateRoute />}>
+            <Route
+              path="/create-listing"
+              element={
+                <AgentGuard>
+                  {" "}
+                  <CreateListing />{" "}
+                </AgentGuard>
+              }
+            />
           </Route>
-          <Route path="/edit-listing" element={<PrivateRoute/>}>
-          <Route path="/edit-listing/:listingId" element={<EditListing />} />
+          <Route path="/edit-listing" element={<PrivateRoute />}>
+            <Route path="/edit-listing/:listingId" element={<EditListing />} />
           </Route>
           <Route path="/forgot-password" element={<ForgotPassword />} />
-       </Routes>
-       </div>
-       <FooterWithCondition/>
+        </Routes>
+        <FooterWithCondition />
       </Router>
       <ToastContainer
-position="bottom-center"
-autoClose={5000}
-hideProgressBar={false}
-newestOnTop={false}
-closeOnClick
-rtl={false}
-pauseOnFocusLoss
-draggable
-pauseOnHover
-theme="light"
-/>
-     </>
+        position="bottom-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+    </>
   );
 }
 
@@ -71,7 +93,7 @@ function HeaderWithCondition() {
 
   useEffect(() => {
     const currentPath = window.location.pathname;
-    const shouldHideHeader = ["/sign-in", "/forgot-password", "/sign-up", "/agent-sign-up", "/agent-sign-in"].includes(currentPath);
+    const shouldHideHeader = ["/sign-in", "/forgot-password", "/sign-up", "/agent-sign-up", "/agent-sign-in", "/results"].includes(currentPath);
     setHideHeader(shouldHideHeader);
   }, [navigate]);
 
@@ -84,11 +106,25 @@ function FooterWithCondition() {
 
   useEffect(() => {
     const currentPath = window.location.pathname;
-    const shouldHideFooter = ["/sign-in", "/forgot-password", "/sign-up", "/agent-sign-up", "/agent-sign-in", "/create-listing"].includes(currentPath);
+    const shouldHideFooter = ["/sign-in", "/forgot-password", "/sign-up", "/agent-sign-up", "/agent-sign-in", "/create-listing", "/results", "/edit-listing"].includes(currentPath);
     setHideFooter(shouldHideFooter);
   }, [navigate]);
 
   return hideFooter ? null : <Footer />;
 }
+function SecondHeaderWithCondition() {
+  const [showSecondHeader, setShowSecondHeader] = useState(false); // Invert initial state
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const currentPath = window.location.pathname;
+    const shouldShowSecondHeader = ["/results"].includes(currentPath);
+    setShowSecondHeader(shouldShowSecondHeader);
+  }, [navigate]);
+
+  return showSecondHeader ? <SecondHeader /> : null; // Render SecondHeader only when showSecondHeader is true
+}
+
+
 
 export default App;

@@ -15,6 +15,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { db } from "../firebase";
 import ListingItem from "../components/ListingItem";
+import { FaAngleDown } from "react-icons/fa6";
+
 
 export default function Profile() {
   const auth = getAuth();
@@ -31,6 +33,9 @@ export default function Profile() {
   const { firstName, lastName, agency, email } = formData;
   const [isAgentUser, setIsAgentUser] = useState(false);
   const [userStatus, setUserStatus] = useState(null);
+  const [isMyProfileOpen, setIsMyProfileOpen] = useState(true);
+  const [isMyListingsOpen, setIsMyListingsOpen] = useState(false);
+  const [isContactUsOpen, setIsContactUsOpen] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -133,111 +138,165 @@ export default function Profile() {
     const agentDoc = await getDoc(agentDocRef);
     return agentDoc.exists();
   };
+
+   const renderGreeting = () => {
+     const displayName = `${firstName}`;
+
+     if (isAgentUser) {
+       return <p>Hey agent <strong>{displayName}</strong>.</p>;
+     } else {
+       return (
+         <p>
+           Hey <strong>{displayName}</strong>.
+         </p>
+       );
+     }
+   };
+
   return (
-    <>
-      <section className="px-6 pt-6 max-w-6xl mx-auto flex justify-center items-center flex-col">
-        <div className="w-full md:w-[50%] mt-6 px-3">
-        <h1 className="text-xl md:text-2xl mt-6 mb-12">My Profile</h1>
-          <form>
-          <p className="mb-2">First name</p>
-            <input
-              type="text"
-              id="firstName"
-              value={firstName}
-              disabled={!changeDetail}
-              onChange={onChange}
-              className={`mb-6 w-full px-4 py-2 text-md text-gray-700 bg-white hover:shadow-xl rounded shadow-lg transition ease-in-out ${
-                changeDetail && "bg-gray-200 focus:bg-gray-200"
-              }`}
-            />
-            <p className="mb-2">Last name</p>
-            <input
-              type="text"
-              id="lastName"
-              value={lastName}
-              disabled={!changeDetail}
-              onChange={onChange}
-              className={`mb-6 w-full px-4 py-2 text-md text-gray-700 bg-white hover:shadow-xl rounded shadow-lg transition ease-in-out ${
-                changeDetail && "bg-gray-200 focus:bg-gray-200"
-              }`}
-            />
-           {isAgentUser && (
-            <div>
-             <p className="mb-2">Agency</p>
-             <input
-             type="text"
-             id="agency"
-             value={agency}
-             disabled={!changeDetail}
-             onChange={onChange}
-             className={`mb-6 w-full px-4 py-2 text-md text-gray-700 bg-white hover:shadow-xl rounded shadow-lg transition ease-in-out ${
-             changeDetail && "bg-gray-200 focus:bg-gray-200"
-             }`}
-             />
+    <div className="bg-white h-full">
+      <section className="px-6 pt-6 max-w-6xl mx-auto flex justify-center items-center  flex-col">
+        <div className="w-full mt-6 px-3">
+          <div className="mb-12 text-xl md:text-2xl ">{renderGreeting()}</div>
+          {/* My Profile Section */}
+          <div className="mb-4">
+            <div
+              className="flex items-center justify-between "
+              onClick={() => setIsMyProfileOpen(!isMyProfileOpen)}
+            >
+              <h2 className="cursor-pointer text-lg  mb-2">My Profile</h2>
+              <FaAngleDown
+                className={`cursor-pointer transition-transform ease-in-out duration-200 transform ${
+                  isMyProfileOpen ? "rotate-180" : ""
+                }`}
+              />
             </div>
-          )}
+            {isMyProfileOpen && (
+              <form>
+                <p className="mt-6 mb-2">First name</p>
+                <input
+                  type="text"
+                  id="firstName"
+                  value={firstName}
+                  disabled={!changeDetail}
+                  onChange={onChange}
+                  className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white hover:shadow-xl rounded shadow-lg transition ease-in-out ${
+                    changeDetail && "bg-gray-200 focus:bg-gray-200"
+                  }`}
+                />
+                <p className="mb-2">Last name</p>
+                <input
+                  type="text"
+                  id="lastName"
+                  value={lastName}
+                  disabled={!changeDetail}
+                  onChange={onChange}
+                  className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white hover:shadow-xl rounded shadow-lg transition ease-in-out ${
+                    changeDetail && "bg-gray-200 focus:bg-gray-200"
+                  }`}
+                />
+                {isAgentUser && (
+                  <div>
+                    <p className="mb-2">Agency</p>
+                    <input
+                      type="text"
+                      id="agency"
+                      value={agency}
+                      disabled={!changeDetail}
+                      onChange={onChange}
+                      className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white hover:shadow-xl rounded shadow-lg transition ease-in-out ${
+                        changeDetail && "bg-gray-200 focus:bg-gray-200"
+                      }`}
+                    />
+                  </div>
+                )}
 
-            <p className="mb-2">Email</p>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              disabled
-              className="mb-6 w-full px-4 py-2 text-md text-gray-700 bg-white rounded shadow-lg hover:shadow-xl transition ease-in-out"
-            />
+                <p className="mb-2">Email</p>
+                <input
+                  type="email"
+                  id="email"
+                  value={email}
+                  disabled
+                  className="mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white rounded shadow-lg hover:shadow-xl transition ease-in-out"
+                />
 
-            <div className="flex justify-between whitespace-nowrap mb-6 text-sm sm:text-lg">
-              <p className="flex items-center">
-                <span
-                  onClick={() => {
-                    changeDetail && onSubmit();
-                    setChangeDetail((prevState) => !prevState);
-                  }}
-                  className="text-black capitalize hover:text-gray-300 transition ease-in-out duration-150 ml-1 cursor-pointer"
-                >
-                  {changeDetail ? "Apply Change" : "Edit Profile"}
-                </span>
-              </p>
-              <p
-                onClick={onLogout}
-                className="text-black capitalize hover:text-gray-300 transition ease-in-out duration-200 cursor-pointer"
-              >
-                Sign out
-              </p>
+                <div className="flex justify-center sm:justify-start whitespace-nowrap mb-6">
+                  <p className="flex items-center">
+                    <span
+                      onClick={() => {
+                        changeDetail && onSubmit();
+                        setChangeDetail((prevState) => !prevState);
+                      }}
+                      className="text-black md:text-md font-semibold capitalize hover:text-gray-300 transition ease-in-out duration-150 cursor-pointer"
+                    >
+                      {changeDetail ? "Apply Change" : "Edit Profile"}
+                    </span>
+                  </p>
+                </div>
+              </form>
+            )}
+            <div className="border-t flex-1 after:border-gray-300"></div>
+          </div>
+
+          {/* My Listings Section */}
+          <div className="mb-4">
+            <div
+              className="flex items-center justify-between"
+              onClick={() => setIsMyListingsOpen(!isMyListingsOpen)}
+            >
+              <h2 className="cursor-pointer text-lg  mb-2">My Listings</h2>
+              <FaAngleDown
+                className={`cursor-pointer transition-transform ease-in-out duration-200 transform ${
+                  isMyListingsOpen ? "rotate-180" : ""
+                }`}
+              />
             </div>
-          </form>
-          {isAgentUser && userStatus === 'approved' && (
-        <button
-          type="submit"
-          className="w-full text-sm text-white shadow-lg hover:shadow-xl rounded-md bg-black px-3 py-3 capitalize transition-all duration-300"
-        >
-          <Link to="/create-listing" className="flex justify-center items-center ">
-            New Listing
-          </Link>
-        </button>
-      )}
+            {isMyListingsOpen && (
+              <>
+                {!loading && listings.length > 0 && (
+                  <ul className=" grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 mt-6 mb-6">
+                    {listings.map((listing) => (
+                      <ListingItem
+                        key={listing.id}
+                        id={listing.id}
+                        listing={listing.data}
+                        onDelete={() => onDelete(listing.id)}
+                        onEdit={() => onEdit(listing.id)}
+                      />
+                    ))}
+                  </ul>
+                )}
+              </>
+            )}
+            <div className="border-t flex-1 after:border-gray-300"></div>
+          </div>
 
+          {/* Contact Us Section */}
+          <div className="mb-4">
+            <div
+              className="flex items-center justify-between"
+              onClick={() => setIsContactUsOpen(!isContactUsOpen)}
+            >
+              <h2 className="cursor-pointer text-lg  mb-2">Help</h2>
+              <FaAngleDown
+                className={`cursor-pointer transition-transform ease-in-out duration-200 transform ${
+                  isContactUsOpen ? "rotate-180" : ""
+                }`}
+              />
+            </div>
+            {isContactUsOpen && <p>Contact us content goes here...</p>}
+            <div className="border-t flex-1 after:border-gray-300"></div>
+          </div>
+          <div className="flex justify-center sm:justify-start whitespace-nowrap mb-6  ">
+            <p
+              onClick={onLogout}
+              className=" mt-4 text-lg font-semibold capitalize hover:text-gray-300 transition ease-in-out duration-200 cursor-pointer"
+            >
+              Sign out
+            </p>
+          </div>
         </div>
       </section>
-      <div>
-        {!loading && listings.length > 0 && (
-          <>
-            <h2 className="text-xl md:text-2xl text-center mt-6 mb-6">My Listings</h2>
-            <ul className="px-6 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl-grid-cols-5 mt-6 mb-6">
-              {listings.map((listing) => (
-                <ListingItem
-                  key={listing.id}
-                  id={listing.id}
-                  listing={listing.data}
-                  onDelete={() => onDelete(listing.id)}
-                  onEdit={() => onEdit(listing.id)}
-                />
-              ))}
-            </ul>
-          </>
-        )}
-        
-      </div>
-    </>
+    </div>
   );
 }

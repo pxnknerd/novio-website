@@ -7,6 +7,7 @@ import {db} from "../firebase";
 import {doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import {toast} from "react-toastify";
+import Select from "react-select";
 
 export default function AgentSignUp() {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,8 +17,47 @@ export default function AgentSignUp() {
     agency: "",
     email: "",
     password: "",
+    selectedCities: [],
   }); 
-  const { firstName, lastName, email, agency, password } = formData;
+    const [emailError, setEmailError] = useState("");
+    const [passwordError, setPasswordError] = useState("");
+    const MoroccanCities = [
+      "Agadir",
+      "Al Hoceima",
+      "Azemmour",
+      "Beni Mellal",
+      "Boujdour",
+      "Casablanca",
+      "Chefchaouen",
+      "Dakhla",
+      "El Jadida",
+      "Erfoud",
+      "Essaouira",
+      "Fes",
+      "Fnideq",
+      "Guelmim",
+      "Ifrane",
+      "Kénitra",
+      "Khouribga",
+      "Laayoune",
+      "Larache",
+      "Marrakech",
+      "Meknes",
+      "Mohammedia",
+      "Nador",
+      "Ouarzazate",
+      "Oujda",
+      "Rabat",
+      "Safi",
+      "Salé",
+      "Tangier",
+      "Taza",
+      "Tétouan",
+      "Tiznit",
+    ];
+
+  const { firstName, lastName, email, agency, password, selectedCities} =
+    formData;
   const navigate = useNavigate()
   function onChange(e) {
     setFormData((prevState)=>({
@@ -25,124 +65,232 @@ export default function AgentSignUp() {
       [e.target.id]: e.target.value,
     }))
   }
+const onCityChange = (selectedOptions) => {
+  // Enforce a limit of 3 selected cities
+  if (selectedOptions.length > 3) {
+    // Display a message or take appropriate action (e.g., toast)
+    return;
+  }
+
+  setFormData((prevState) => ({
+    ...prevState,
+    selectedCities: selectedOptions.map((option) => option.value),
+  }));
+};
+
   async function onSubmit(e){
-    e.preventDefault()
+    e.preventDefault();
+    setEmailError("");
+    setPasswordError("");
+    // Regular expression to extract domain from email
+    const domainRegex = /@([a-zA-Z0-9.-]+)$/;
+    const match = email.match(domainRegex);
+
+    if (!match) {
+      setPasswordError("Invalid email address. Please enter a valid email.");
+      return;
+    }
+
+    const emailDomain = match[1].toLowerCase();
+    const allowedDomains = [
+      "gmail.com",
+      "yahoo.com",
+      "hotmail.com",
+      "outlook.com",
+      "icloud.com",
+      "aol.com",
+      "protonmail.com",
+      "mail.com",
+      "zoho.com",
+      "yandex.com",
+      "gmx.com",
+    ];
+    if (!allowedDomains.includes(emailDomain)) {
+      setEmailError(
+        "Invalid email domain. Please use a supported email provider."
+      );
+      return;
+    }
     try {
-      const auth = getAuth()
+      const auth = getAuth();
       const userCredential = await createUserWithEmailAndPassword(
-        auth, 
-        email, 
+        auth,
+        email,
         password
-        );
-        
+      );
+
       const user = userCredential.user;
-      const formDataCopy = {...formData};
+      const formDataCopy = { ...formData };
       delete formDataCopy.password;
       formDataCopy.timestamp = serverTimestamp();
       formDataCopy.status = "pending";
-// Ensure both operations are atomic
-await Promise.all([
-  updateProfile(auth.currentUser, {
-    displayName: `${firstName} ${lastName} ${agency}`,
-  }),
-  setDoc(doc(db, "agents", user.uid), formDataCopy),
-]);
+      formDataCopy.selectedCities = selectedCities;
+      // Ensure both operations are atomic
+      await Promise.all([
+        updateProfile(auth.currentUser, {
+          displayName: `${firstName} ${lastName} ${agency}`,
+        }),
+        setDoc(doc(db, "agents", user.uid), formDataCopy),
+      ]);
+      navigate("/agent-verification");
+    } catch (error) {
+      console.error("Firebase authentication error:", error);
 
-toast.success("Agent sign up request was sent for approval");
-navigate("/");
-} catch (error) {
-console.error('Error during agent sign-up:', error);
-toast.error("Something went wrong with the registration");
-}
-}
+      switch (error.code) {
+        case "auth/email-already-in-use":
+          setEmailError("This email is already in use. Please choose another.");
+          break;
+        case "auth/invalid-email":
+          setEmailError("Invalid email address. Please enter a valid email.");
+          break;
+        case "auth/weak-password":
+          setPasswordError(
+            "Password is too weak. Please choose a stronger password."
+          );
+          break;
+        // Handle other auth errors as needed
+        default:
+          setEmailError("Something went wrong with the registration");
+      }
+    }
+  }
   return (
     <section>
-       <div className="grid grid-cols-1 md:grid-cols-2"> 
-      <div className="grid w-full h-48 grid-cols-1 grid-rows-1 overflow-hidden bg-cover md:h-screen bg-blue-100 ">
-        <div className='h-full  col-span-1 col-start-1 row-span-1 row-start-1"'>
-      <img src={process.env.PUBLIC_URL + '/img007.png'} 
-      alt="key"
-      className=" object-cover h-full bg-blend-overlay"/>
-      </div>
-      <div  className='h-full col-span-1 col-start-1 row-span-1 row-start-1 text-center  '>
-        <a href="/">
-          <img src={process.env.PUBLIC_URL + '/Logo.svg'}
-            className='mt-12 w-36 md:w-60 text-center hover:opacity-70 transition ease-in-out duration-200 inline-block'/>
-        </a>
-        
+      <div className="grid grid-cols-1 md:grid-cols-2">
+        <div className="grid w-full h-48 grid-cols-1 grid-rows-1 overflow-hidden bg-cover md:h-screen bg-gray-100 ">
+          <div className='h-full  col-span-1 col-start-1 row-span-1 row-start-1"'>
+            <img
+              src={process.env.PUBLIC_URL + "/img007.png"}
+              alt="key"
+              className=" object-cover h-full bg-blend-overlay"
+            />
+          </div>
+          <div className="h-full col-span-1 col-start-1 row-span-1 row-start-1 text-center  ">
+            <a href="/">
+              <img
+                src={process.env.PUBLIC_URL + "/Logo.svg"}
+                className="mt-12 w-36 md:w-60 text-center hover:opacity-70 transition ease-in-out duration-200 inline-block"
+              />
+            </a>
+          </div>
+        </div>
+        <div className="flex items-center py-12 bg-white md:my-0 md:h-screen md:shadow-md shadow-black/30">
+          <form onSubmit={onSubmit} className="max-w-md px-4 w-[28rem] mx-auto">
+            <div className=" justify-start text-center md:text-left text-xl md:text-4xl py-8 text-black">
+              Create agent account
+            </div>
 
-      </div>
-      </div>
-      <div className="flex items-center py-12 bg-white md:my-0 md:h-screen md:shadow-md shadow-black/30">
-        <form onSubmit={onSubmit} className='max-w-md px-4 w-[28rem] mx-auto'>
-        <div className=" justify-start text-center md:text-left text-xl md:text-4xl py-8 text-black">
-            Create agent account
-          </div>
-          
-          <input 
-          type="text" 
-          id="firstName" 
-          value={firstName} 
-          onChange={onChange}
-          placeholder="First name"
-          className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
-          />
-          <input 
-          type="text" 
-          id="lastName" 
-          value={lastName} 
-          onChange={onChange}
-          placeholder="Last name"
-          className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
-          />
-          <input 
-          type="text" 
-          id="agency" 
-          value={agency} 
-          onChange={onChange}
-          placeholder="Agency name"
-          className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
-          />
-           <input 
-          type="email" 
-          id="email" 
-          value={email} 
-          onChange={onChange}
-          placeholder="Email address"
-          className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
-          />
-          <div className="relative">
-          <input
-          type={showPassword ? "text" : "password"} 
-          id="password" 
-          value={password} 
-          onChange={onChange}
-          placeholder="Password"
-          className="w-full px-4 mb-6 py-2 text-md  shadow-md color-grey-700 bg-white border-gray-300 rounded transition ease-in-out"
-          />   
-          {showPassword ? <AiFillEyeInvisible className="absolute right-3 top-3 text-xl cursor-pointer"
-           onClick={() => setShowPassword
-             ((prevState) => !prevState)}/>
-          : <AiFillEye className="absolute right-3 top-3 text-xl cursor-pointer" 
-           onClick={() => setShowPassword
-            ((prevState) => !prevState)}/>}
-          </div>
-          <div className="flex justify-between whitespace-nowrap text-sm sm:text-md">
-            <p className="mb-6">Have an account? 
-              <Link to="/sign-in" className="text-black hover:text-red-700 transition duration-200 ease-in-out font-semibold"> Sign in</Link>
-            </p>
-     
-          </div>
-          <button className="w-full uppercase bg-black rounded text-white px-7 py-3" 
-        type="submit">Submit</button> 
-      <div className="flex items-center my-4 before:border-t before:flex-1 before:border-gray-300 after:border-t after:flex-1 after:border-gray-300">
-        <p className="text-center
-        font-semibold mx-4">OR</p>  
-      </div>
-       <OAuth/>
-      </form> 
-      </div>
+            <input
+              type="text"
+              id="firstName"
+              value={firstName}
+              onChange={onChange}
+              placeholder="First name"
+              className="w-full mt-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
+            />
+            <input
+              type="text"
+              id="lastName"
+              value={lastName}
+              onChange={onChange}
+              placeholder="Last name"
+              className="w-full mt-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
+            />
+            <input
+              type="text"
+              id="agency"
+              value={agency}
+              onChange={onChange}
+              placeholder="Agency name"
+              className="w-full mt-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
+            />
+            <div className="mt-6">
+              <label
+                htmlFor="selectedCities"
+                className="text-md font-medium text-black"
+              ></label>
+              <Select
+                id="selectedCities"
+                name="selectedCities"
+                placeholder="Select up to 3 cities you operate in:"
+                options={MoroccanCities.map((city) => ({
+                  value: city,
+                  label: city,
+                }))}
+                isMulti
+                value={selectedCities.map((city) => ({
+                  value: city,
+                  label: city,
+                }))}
+                onChange={onCityChange}
+              />
+            </div>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={onChange}
+              placeholder="Email address"
+              className="w-full mt-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
+            />
+            {emailError && (
+              <p className="text-red-500 text-sm mb-2">{emailError}</p>
+            )}
+            <div className="relative mt-6">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                value={password}
+                onChange={onChange}
+                placeholder="Password"
+                className="w-full px-4 py-2 text-md  shadow-md color-grey-700 bg-white border-gray-300 rounded transition ease-in-out"
+              />
+
+              {showPassword ? (
+                <AiFillEyeInvisible
+                  className="absolute right-3 top-3 text-xl cursor-pointer"
+                  onClick={() => setShowPassword((prevState) => !prevState)}
+                />
+              ) : (
+                <AiFillEye
+                  className="absolute right-3 top-3 text-xl cursor-pointer"
+                  onClick={() => setShowPassword((prevState) => !prevState)}
+                />
+              )}
+            </div>
+            {passwordError && (
+              <p className="text-red-500 text-sm mb-2">{passwordError}</p>
+            )}
+            <div className="flex  justify-between whitespace-nowrap text-sm sm:text-md">
+              <p className="mb-6 mt-3 ">
+                Have an account?
+                <Link
+                  to="/sign-in"
+                  className="text-black hover:text-red-700 transition duration-200 ease-in-out font-semibold"
+                >
+                  {" "}
+                  Sign in
+                </Link>
+              </p>
+            </div>
+            <button
+              className="w-full uppercase bg-custom-red rounded text-white px-7 py-3"
+              type="submit"
+            >
+              Submit
+            </button>
+            <div className="flex items-center my-4 before:border-t before:flex-1 before:border-gray-300 after:border-t after:flex-1 after:border-gray-300">
+              <p
+                className="text-center
+        font-semibold mx-4"
+              >
+                OR
+              </p>
+            </div>
+            <OAuth />
+          </form>
+        </div>
       </div>
     </section>
-  )
+  );
 }
