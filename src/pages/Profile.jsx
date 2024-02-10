@@ -17,23 +17,25 @@ import { db } from "../firebase";
 import ListingItem from "../components/ListingItem";
 import { FaAngleDown } from "react-icons/fa6";
 
-
 export default function Profile() {
   const auth = getAuth();
   const navigate = useNavigate();
   const [changeDetail, setChangeDetail] = useState(false);
   const [listings, setListings] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [phoneNumber, setPhoneNumber] = useState("");
+
   const [formData, setFormData] = useState({
-    firstName: auth.currentUser.displayName.split(' ')[0] || '',
-    lastName: auth.currentUser.displayName.split(' ')[1] || '',
-    agency: auth.currentUser.displayName.split(' ')[2] || '',
+    firstName: auth.currentUser.displayName.split(" ")[0] || "",
+    lastName: auth.currentUser.displayName.split(" ")[1] || "",
+    agency: auth.currentUser.displayName.split(" ")[2] || "",
     email: auth.currentUser.email,
+    phoneNumber: "",
   });
   const { firstName, lastName, agency, email } = formData;
   const [isAgentUser, setIsAgentUser] = useState(false);
   const [userStatus, setUserStatus] = useState(null);
-  const [isMyProfileOpen, setIsMyProfileOpen] = useState(true);
+  const [isMyProfileOpen, setIsMyProfileOpen] = useState(false);
   const [isMyListingsOpen, setIsMyListingsOpen] = useState(false);
   const [isContactUsOpen, setIsContactUsOpen] = useState(false);
 
@@ -44,19 +46,21 @@ export default function Profile() {
         const agentStatus = await isAgent();
         setIsAgentUser(agentStatus);
 
-         // Fetch user status
-         const userDocRef = doc(db, 'agents', auth.currentUser.uid);
-         const userDoc = await getDoc(userDocRef);
- 
-         if (userDoc.exists()) {
-           // Assuming the user status is stored as a field named "status"
-           const status = userDoc.data().status;
-           setUserStatus(status);
-         } else {
-           // Handle the case where the user document doesn't exist
-           setUserStatus(null);
-         }
-  
+        
+
+        // Fetch user status
+        const userDocRef = doc(db, "agents", auth.currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+          // Assuming the user status is stored as a field named "status"
+          const status = userDoc.data().status;
+          setUserStatus(status);
+        } else {
+          // Handle the case where the user document doesn't exist
+          setUserStatus(null);
+        }
+
         // Fetch user listings
         const listingRef = collection(db, "listings");
         const q = query(
@@ -74,6 +78,7 @@ export default function Profile() {
         });
         setListings(listings);
         setLoading(false);
+        
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -81,6 +86,30 @@ export default function Profile() {
 
     fetchData();
   }, [auth.currentUser.uid]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // ... (your existing code)
+
+        // Fetch user phone number
+        const userDocRef = doc(
+          db,
+          isAgentUser ? "agents" : "users",
+          auth.currentUser.uid
+        );
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+          const userPhoneNumber = userDoc.data().phoneNumber;
+          setPhoneNumber(userPhoneNumber);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
+
+    fetchData();
+  }, [auth.currentUser.uid, isAgentUser]);
 
   async function onDelete(listingID) {
     if (window.confirm("Are you sure you want to delete?")) {
@@ -107,31 +136,40 @@ export default function Profile() {
       ...prevState,
       [e.target.id]: e.target.value,
     }));
-  }
-
-  async function onSubmit() {
-    try {
-      const displayName = `${firstName} ${lastName} ${agency}`;
-  
-      if (auth.currentUser.displayName !== displayName) {
-        // Update display name in firebase auth
-        await updateProfile(auth.currentUser, {
-          displayName,
-        });
-  
-        // Update name in Firestore based on user type (agent or regular user)
-        const userDocRef = doc(db, isAgentUser ? 'agents' : 'users', auth.currentUser.uid);
-        await updateDoc(userDocRef, {
-          firstName,
-          lastName,
-          agency,
-        });
-      }
-      toast.success("Profile details updated");
-    } catch (error) {
-      toast.error("Could not update the profile details");
+    // Handle changes to phone number
+    if (e.target.id === "phoneNumber") {
+      setPhoneNumber(e.target.value);
     }
   }
+
+ async function onSubmit() {
+   try {
+     const displayName = `${firstName} ${lastName} ${agency}`;
+
+     // Update display name in firebase auth
+     await updateProfile(auth.currentUser, {
+       displayName,
+     });
+
+     // Update name and phone number in Firestore based on user type (agent or regular user)
+     const userDocRef = doc(
+       db,
+       isAgentUser ? "agents" : "users",
+       auth.currentUser.uid
+     );
+
+     await updateDoc(userDocRef, {
+       firstName,
+       lastName,
+       agency,
+       phoneNumber: formData.phoneNumber,
+     });
+
+     toast.success("Profile details updated");
+   } catch (error) {
+     toast.error("Could not update the profile details");
+   }
+ }
 
   const isAgent = async () => {
     const agentDocRef = doc(db, "agents", auth.currentUser.uid);
@@ -139,19 +177,23 @@ export default function Profile() {
     return agentDoc.exists();
   };
 
-   const renderGreeting = () => {
-     const displayName = `${firstName}`;
+  const renderGreeting = () => {
+    const displayName = `${firstName}`;
 
-     if (isAgentUser) {
-       return <p>Hey agent <strong>{displayName}</strong>.</p>;
-     } else {
-       return (
-         <p>
-           Hey <strong>{displayName}</strong>.
-         </p>
-       );
-     }
-   };
+    if (isAgentUser) {
+      return (
+        <p>
+          Hey agent <strong>{displayName}</strong>.
+        </p>
+      );
+    } else {
+      return (
+        <p>
+          Hey <strong>{displayName}</strong>.
+        </p>
+      );
+    }
+  };
 
   return (
     <div className="bg-white h-full">
@@ -189,6 +231,17 @@ export default function Profile() {
                   type="text"
                   id="lastName"
                   value={lastName}
+                  disabled={!changeDetail}
+                  onChange={onChange}
+                  className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white hover:shadow-xl rounded shadow-lg transition ease-in-out ${
+                    changeDetail && "bg-gray-200 focus:bg-gray-200"
+                  }`}
+                />
+                <p className="mb-2">Phone Number</p>
+                <input
+                  type="tel"
+                  id="phoneNumber"
+                  value={phoneNumber}
                   disabled={!changeDetail}
                   onChange={onChange}
                   className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white hover:shadow-xl rounded shadow-lg transition ease-in-out ${

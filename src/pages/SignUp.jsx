@@ -18,15 +18,23 @@ export default function SignUp() {
     firstName: "",
     lastName: "",
     email: "",
+    phoneNumber: "+212",
     password: "",
   }); 
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const { firstName, lastName, email, password } = formData;
+  const { firstName, lastName, email, phoneNumber, password } = formData;
   const handleSignUpAsAgentClick = () => {
     // Navigate to the AgentSignUp page when clicked
     navigate("/agent-sign-up");
   };
+   const onPhoneNumberChange = (e) => {
+     const remainingPart = e.target.value.replace(/^\+212/, "");
+     setFormData((prevState) => ({
+       ...prevState,
+       phoneNumber: `+212${remainingPart}`,
+     }));
+   };
   const navigate = useNavigate()
   function onChange(e) {
     setFormData((prevState)=>({
@@ -46,7 +54,8 @@ export default function SignUp() {
       setEmailError("Invalid email address. Please enter a valid email.");
       return;
     }
-
+    
+   
     const emailDomain = match[1].toLowerCase();
     const allowedDomains = [
       "gmail.com",
@@ -158,6 +167,13 @@ export default function SignUp() {
               value={email}
               onChange={onChange}
               placeholder="Email address"
+              className="w-full mt-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
+            />
+            <input
+              type="tel"
+              id="phoneNumber"
+              value={phoneNumber}
+              onChange={onPhoneNumberChange}
               className="w-full mt-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
             />
             {emailError && (

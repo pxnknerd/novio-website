@@ -80,3 +80,11 @@ html{
   .duration-300 {
     transition-duration: 300ms;
   }
+
+.popup-container {
+    height: 1633px; /* Set your desired height */
+       display: flex;
+    align-items: center;
+    justify-content: center;
+}
+

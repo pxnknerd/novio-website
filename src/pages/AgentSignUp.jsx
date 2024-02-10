@@ -17,6 +17,7 @@ export default function AgentSignUp() {
     agency: "",
     email: "",
     password: "",
+    phoneNumber: "+212",
     selectedCities: [],
   }); 
     const [emailError, setEmailError] = useState("");
@@ -55,8 +56,12 @@ export default function AgentSignUp() {
       "Tétouan",
       "Tiznit",
     ];
+    const isValidMoroccanPhoneNumber = (number) => {
+      const moroccanPhoneNumberRegex = /^\+212[5-9]\d{8}$/;
+      return moroccanPhoneNumberRegex.test(number);
+    };
 
-  const { firstName, lastName, email, agency, password, selectedCities} =
+  const { firstName, lastName, email, agency, password, phoneNumber, selectedCities} =
     formData;
   const navigate = useNavigate()
   function onChange(e) {
@@ -78,6 +83,14 @@ const onCityChange = (selectedOptions) => {
   }));
 };
 
+const onPhoneNumberChange = (e) => {
+  const remainingPart = e.target.value.replace(/^\+212/, "");
+  setFormData((prevState) => ({
+    ...prevState,
+    phoneNumber: `+212${remainingPart}`,
+  }));
+};
+
   async function onSubmit(e){
     e.preventDefault();
     setEmailError("");
@@ -85,6 +98,13 @@ const onCityChange = (selectedOptions) => {
     // Regular expression to extract domain from email
     const domainRegex = /@([a-zA-Z0-9.-]+)$/;
     const match = email.match(domainRegex);
+
+    // Validate Moroccan phone number format
+    if (!isValidMoroccanPhoneNumber(formData.phoneNumber)) {
+      // Display a message or take appropriate action (e.g., toast)
+      toast.error("Invalid Moroccan phone number format");
+      return;
+    }
 
     if (!match) {
       setPasswordError("Invalid email address. Please enter a valid email.");
@@ -204,6 +224,14 @@ const onCityChange = (selectedOptions) => {
               placeholder="Agency name"
               className="w-full mt-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
             />
+            <input
+              type="tel"
+              id="phoneNumber"
+              value={phoneNumber}
+              onChange={onPhoneNumberChange}
+              className="w-full mt-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
+            />
+
             <div className="mt-6">
               <label
                 htmlFor="selectedCities"

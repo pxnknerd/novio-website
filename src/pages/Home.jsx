@@ -171,7 +171,7 @@ export default function Home() {
         <div className="mx-auto p-8  flex max-w-6xl ">
           <ul className=" grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2">
             <li
-              className="cursor-pointer hover:shadow-lg shadow-md px-8 items-center flex flex-col rounded-lg bg-white transition duration-300"
+              className="cursor-pointer hover:shadow-2xl shadow-md px-8 items-center flex flex-col rounded-lg bg-white transition duration-300"
               onClick={() => navigateToResults("rent")}
             >
               <img
@@ -194,7 +194,7 @@ export default function Home() {
               </button>
             </li>
             <li
-              className="cursor-pointer hover:shadow-lg shadow-md px-8 items-center flex flex-col rounded-lg bg-white transition duration-300"
+              className="cursor-pointer hover:shadow-2xl shadow-md px-8 items-center flex flex-col rounded-lg bg-white transition duration-300"
               onClick={() => navigateToResults("sale")}
             >
               <img
@@ -217,7 +217,7 @@ export default function Home() {
                 Search Homes
               </button>
             </li>
-            <li className="cursor-pointer hover:shadow-lg shadow-md px-8 items-center flex flex-col rounded-lg bg-white transition duration-300">
+            <li className="cursor-pointer hover:shadow-2xl shadow-md px-8 items-center flex flex-col rounded-lg bg-white transition duration-300">
               <img
                 className="w-full object-cover transition-scale duration-200 ease-in"
                 loading="lazy"
