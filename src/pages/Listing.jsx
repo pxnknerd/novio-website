@@ -22,12 +22,15 @@ import MyPin from "../assets/svg/MyPin.svg";
 
 
 
+
 export default function Listing() {
   const auth = getAuth();
   const params = useParams();
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [contactLandlord, setContactLandlord] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [contactLandlord, setContactLandlord] = useState(true);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -162,7 +165,7 @@ const customMarkerIcon = new L.Icon({
         </div>
       </div>
       {isPopupOpen && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-70 flex justify-center items-center">
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-70 flex justify-center items-center z-50">
           <div className="bg-black md:bg-black bg-opacity-50 md:bg-opacity-50 max-w-screen-md">
             <button
               className="absolute top-0 right-0 p-2 z-50"
@@ -178,10 +181,10 @@ const customMarkerIcon = new L.Icon({
         </div>
       )}
 
-      <div className="hidden md:flex max-w-6xl px-8 mx-auto">
+      <div className="hidden space-x-4 md:flex max-w-6xl px-8 mx-auto">
         <div className="flex justify-between w-2/3 mx-auto">
           <div className="mx-auto w-full">
-            <p className="flex w-full mx-auto justify-between mb-3 text-black">
+            <div className="flex w-full mx-auto justify-between mb-3 text-black">
               {listing.offer ? (
                 <div className="flex justify-start w-full">
                   <div className="flex flex-col items-start">
@@ -223,7 +226,7 @@ const customMarkerIcon = new L.Icon({
                   {listing.type === "rent" ? " / month" : ""}
                 </span>
               )}
-            </p>
+            </div>
             <div className="mt-8 grid grid-cols-3 grid-rows-2 gap-4 text-md ">
               {/* Content for the grid cells */}
               <div className="flex items-center capitalize col-span-3 md:col-span-1 row-span-1 bg-gray-100  p-4 rounded-md">
@@ -297,14 +300,13 @@ const customMarkerIcon = new L.Icon({
                   <MapContainer
                     center={[listing.latitude, listing.longitude]}
                     zoom={13}
-                    style={{ height: "100%", width: "100%" }}
+                    style={{ height: "100%", width: "100%", zIndex: 1 }}
                     zoomControl={false} // Disable zoom controls
                   >
                     <TileLayer
                       url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}.png"
                       minZoom={14}
                       maxZoom={20}
-                      detectRetina={true}
                       attribution='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     />
                     <Marker
@@ -319,150 +321,187 @@ const customMarkerIcon = new L.Icon({
             </div>
           </div>
         </div>
-        <div className="w-1/3"></div>
+        <div className="w-1/3">
+          <div className="ml-6 sticky top-8">
+            <div className=" border-2 w-full border-gray-200 rounded-md flex justify-center py-4 px-4 items-center">
+              {listing.userRef !== auth.currentUser?.uid &&
+                !contactLandlord && (
+                  <div className="w-full">
+                    <button
+                      onClick={() => setContactLandlord(true)}
+                      className="flex justify-center  bg-custom-red border-2 text-white rounded-md w-full py-3 text-xl"
+                    >
+                      Contact agent
+                    </button>
+                  </div>
+                )}
+              {contactLandlord && (
+                <Contact userRef={listing.userRef} listing={listing} />
+              )}
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="flex md:hidden max-w-6xl px-8 mx-auto">
-        <div className="flex justify-between w-2/3 mx-auto">
-          <div className="mx-auto w-full">
-            <p className="flex w-full mx-auto justify-between mb-3 text-black">
-              {listing.offer ? (
-                <div className="flex justify-start w-full">
+
+      <div className="flex md:hidden px-4 justify-between w-full mx-auto">
+        <div className="mx-auto w-full">
+          <div className="flex w-full mx-auto justify-between mb-3 text-black">
+            {listing.offer ? (
+              <div className="flex justify-start w-full">
+                <div className="flex flex-col items-start">
+                  <span className="text-xl md:text-4xl font-bold mr-2">
+                    {listing.discountedPrice
+                      .toString()
+                      .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    DH
+                  </span>
+                  <span className="text-sm">{listing.address}</span>
+                </div>
+                <div className="flex justify-end space-x-2  w-full">
                   <div className="flex flex-col items-start">
-                    <span className="text-2xl md:text-4xl font-bold mr-2">
-                      {listing.discountedPrice
-                        .toString()
-                        .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                      DH
+                    <span className="text-xl md:text-4xl font-bold mr-2">
+                      {+listing.bedrooms > 1 ? `${listing.bedrooms}` : "1"}
                     </span>
-                    <span className="text-lg">{listing.address}</span>
+                    <span className="text-sm ">Beds</span>
                   </div>
-                  <div className="flex justify-end space-x-6  w-full">
-                    <div className="flex flex-col items-start">
-                      <span className="text-2xl md:text-4xl font-bold mr-2">
-                        {+listing.bedrooms > 1 ? `${listing.bedrooms}` : "1"}
-                      </span>
-                      <span className="text-lg ">Beds</span>
-                    </div>
-                    <div className="flex flex-col items-start">
-                      <span className="text-2xl md:text-4xl font-bold mr-2">
-                        {+listing.bathrooms > 1 ? `${listing.bathrooms}` : "1"}
-                      </span>
-                      <span className="text-lg ">Baths</span>
-                    </div>
-                    <div className="flex flex-col items-start">
-                      <span className="text-2xl md:text-4xl font-bold mr-2">
-                        {listing.size}
-                      </span>
-                      <span className="text-lg ">m²</span>
-                    </div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-xl md:text-4xl font-bold mr-2">
+                      {+listing.bathrooms > 1 ? `${listing.bathrooms}` : "1"}
+                    </span>
+                    <span className="text-sm ">Baths</span>
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-xl md:text-4xl font-bold mr-2">
+                      {listing.size}
+                    </span>
+                    <span className="text-sm ">m²</span>
                   </div>
                 </div>
-              ) : (
-                <span>
-                  {listing.regularPrice
-                    .toString()
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}{" "}
-                  DH
-                  {listing.type === "rent" ? " / month" : ""}
-                </span>
-              )}
-            </p>
-            <div className="mt-8 grid grid-cols-3 grid-rows-2 gap-4 text-md ">
-              {/* Content for the grid cells */}
-              <div className="flex items-center capitalize col-span-3 md:col-span-1 row-span-1 bg-gray-100  p-4 rounded-md">
-                <MdOutlineVilla className="text-2xl mr-2" />
-                {listing.listingType}
-                {/* Button or additional content for the first cell */}
               </div>
-              <div className="flex items-center capitalize col-span-3 md:col-span-1 row-span-1 bg-gray-100  p-4 rounded-md">
-                <li className="flex items-center whitespace-nowrap">
-                  <LuSofa className="text-2xl mr-2" />
-                  {listing.furnished ? "Furnished" : "Not furnished"}
-                  {/* Button or additional content for the second cell */}
-                </li>
-              </div>
-              <div className="flex items-center capitalize col-span-3 md:col-span-1 row-span-1 bg-gray-100  p-4 rounded-md">
-                <LuParkingSquare className="text-2xl mr-2" />
-                {listing.parking ? "Parking spot" : "No parking"}
-                {/* Button or additional content for the third cell */}
-              </div>
-              <div className="flex items-center capitalize col-span-3 md:col-span-1 row-span-1 bg-gray-100  p-4 rounded-md">
-                <MdOutlineConstruction className="text-2xl mr-2" />
-                Built in {listing.yearBuilt}
-                {/* Button or additional content for the fourth cell */}
-              </div>
-              <div className="flex items-center  col-span-3 md:col-span-1 row-span-1 bg-gray-100 p-4 rounded-md">
-                {listing.type === "sale" ? (
-                  <>
-                    <FaRulerCombined className="text-2xl mr-2" />
-                    {(
-                      (listing.discountedPrice || listing.regularPrice) /
-                      listing.size
-                    ).toFixed(2)}
-                    DH/m²
-                  </>
-                ) : (
-                  <>
-                    <FaRulerCombined className="text-2xl mr-2" />
-                    --
-                  </>
-                )}
-              </div>
-
-              <div className="flex items-center capitalize col-span-3 md:col-span-1 row-span-1 bg-gray-100 p-4 rounded-md">
-                <img
-                  src="/favicon.ico" // Update the path if the favicon.ico is in a different subdirectory
-                  alt="Parking Icon"
-                  className="w-7 h-7 mr-2"
-                />
-                --
-                {/* Button or additional content for the sixth cell */}
-              </div>
+            ) : (
+              <span>
+                {listing.regularPrice
+                  .toString()
+                  .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}{" "}
+                DH
+                {listing.type === "rent" ? " / month" : ""}
+              </span>
+            )}
+          </div>
+          <div className="mt-8 grid grid-cols-2 grid-rows-3 gap-2 text-sm ">
+            {/* Content for the grid cells */}
+            <div className="flex items-center capitalize col-span-1 row-span-1 bg-gray-100  p-4 rounded-md">
+              <MdOutlineVilla className="text-md mr-2" />
+              {listing.listingType}
+              {/* Button or additional content for the first cell */}
             </div>
-            <div className="mt-10">
-              <h1 className="text-3xl font-semibold">Highlights</h1>
-              <p className="mt-2">{listing.description}</p>
-              <p className="mt-4">
-                Listing updated : {}
-                <Moment className="font-semibold " fromNow>
-                  {listing.timestamp?.toDate()}
-                </Moment>
-              </p>
-              <p>
-                Last update : {}
-                <Moment className="font-semibold ">
-                  {listing.timestamp?.toDate()}
-                </Moment>
-              </p>
-              <h1 className="mt-8 text-3xl font-semibold">Location</h1>
-              <div className="mt-4 bg-gray-100 border-4 border-gray-300 h-[250px] rounded-lg">
-                {listing.latitude && listing.longitude && (
-                  <MapContainer
-                    center={[listing.latitude, listing.longitude]}
-                    zoom={13}
-                    style={{ height: "100%", width: "100%" }}
-                    zoomControl={false} // Disable zoom controls
+            <div className="flex items-center capitalize col-span-1 row-span-1 bg-gray-100  p-4 rounded-md">
+              <li className="flex items-center whitespace-nowrap">
+                <LuSofa className="text-md mr-2" />
+                {listing.furnished ? "Furnished" : "Not furnished"}
+                {/* Button or additional content for the second cell */}
+              </li>
+            </div>
+            <div className="flex items-center capitalize col-span-1 row-span-1 bg-gray-100  p-4 rounded-md">
+              <LuParkingSquare className="text-md mr-2" />
+              {listing.parking ? "Parking spot" : "No parking"}
+              {/* Button or additional content for the third cell */}
+            </div>
+            <div className="flex items-center capitalize col-span-1 row-span-1 bg-gray-100  p-4 rounded-md">
+              <MdOutlineConstruction className="text-md mr-2" />
+              Built in {listing.yearBuilt}
+              {/* Button or additional content for the fourth cell */}
+            </div>
+            <div className="flex items-center  col-span-1 row-span-1 bg-gray-100 p-4 rounded-md">
+              {listing.type === "sale" ? (
+                <>
+                  <FaRulerCombined className="text-md mr-2" />
+                  {(
+                    (listing.discountedPrice || listing.regularPrice) /
+                    listing.size
+                  ).toFixed(2)}
+                  DH/m²
+                </>
+              ) : (
+                <>
+                  <FaRulerCombined className="text-md mr-2" />
+                  --
+                </>
+              )}
+            </div>
+
+            <div className="flex items-center capitalize col-span-1 row-span-1 bg-gray-100 p-4 rounded-md">
+              <img
+                src="/favicon.ico" // Update the path if the favicon.ico is in a different subdirectory
+                alt="Parking Icon"
+                className="w-7 h-7 mr-2"
+              />
+              --
+              {/* Button or additional content for the sixth cell */}
+            </div>
+          </div>
+
+          <div className="mt-10 text-sm">
+            <h1 className="text-xl font-semibold">Highlights</h1>
+            <p className="mt-2">{listing.description}</p>
+            <p className="mt-4">
+              Listing updated : {}
+              <Moment className="font-semibold " fromNow>
+                {listing.timestamp?.toDate()}
+              </Moment>
+            </p>
+            <p>
+              Last update : {}
+              <Moment className="font-semibold ">
+                {listing.timestamp?.toDate()}
+              </Moment>
+            </p>
+
+            <h1 className="mt-8 text-xl font-semibold">Location</h1>
+            <div className="mt-4 bg-gray-100 border-4 border-gray-300 h-[250px] rounded-lg">
+              {listing.latitude && listing.longitude && (
+                <MapContainer
+                  center={[listing.latitude, listing.longitude]}
+                  zoom={13}
+                  style={{ height: "100%", width: "100%", zIndex: 1 }}
+                  zoomControl={false} // Disable zoom controls
+                >
+                  <TileLayer
+                    url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}.png"
+                    minZoom={14}
+                    maxZoom={20}
+                    detectRetina={true}
+                    attribution='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  />
+                  <Marker
+                    position={[listing.latitude, listing.longitude]}
+                    icon={customMarkerIcon}
                   >
-                    <TileLayer
-                      url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}.png"
-                      minZoom={14}
-                      maxZoom={20}
-                      detectRetina={true}
-                      attribution='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    />
-                    <Marker
-                      position={[listing.latitude, listing.longitude]}
-                      icon={customMarkerIcon}
+                    <Popup>{listing.address}</Popup>
+                  </Marker>
+                </MapContainer>
+              )}
+            </div>
+            <h1 className="mt-10  text-xl font-semibold">Contact</h1>
+
+            <div className="mt-4 border-2 w-full border-gray-200 rounded-md flex justify-center py-4 px-4 items-center">
+              {listing.userRef !== auth.currentUser?.uid &&
+                !contactLandlord && (
+                  <div className="w-full">
+                    <button
+                      onClick={() => setContactLandlord(true)}
+                      className="flex justify-center  bg-custom-red border-2 text-white rounded-md w-full py-3 text-xl"
                     >
-                      <Popup>{listing.address}</Popup>
-                    </Marker>
-                  </MapContainer>
+                      Contact agent
+                    </button>
+                  </div>
                 )}
-              </div>
+              {contactLandlord && (
+                <Contact userRef={listing.userRef} listing={listing} />
+              )}
             </div>
           </div>
         </div>
-        <div className="w-1/3"></div>
       </div>
     </main>
   );

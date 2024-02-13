@@ -37,6 +37,10 @@ bold {
     background-color: #e61b00;
   }
 
+.text-custom-red {
+    color: #e61b00;
+  }
+
 .bg-custom-red:hover {
     background-color: #991200;
   }
@@ -86,5 +90,6 @@ html{
        display: flex;
     align-items: center;
     justify-content: center;
+    
 }
 

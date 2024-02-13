@@ -167,7 +167,7 @@ export default function Home() {
           </div>
         )} </div>
 
-      <div className="bg-gray-100">
+      <div className="bg-gray-50">
         <div className="mx-auto p-8  flex max-w-6xl ">
           <ul className=" grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2">
             <li

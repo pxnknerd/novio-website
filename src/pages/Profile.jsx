@@ -46,8 +46,6 @@ export default function Profile() {
         const agentStatus = await isAgent();
         setIsAgentUser(agentStatus);
 
-        
-
         // Fetch user status
         const userDocRef = doc(db, "agents", auth.currentUser.uid);
         const userDoc = await getDoc(userDocRef);
@@ -222,7 +220,7 @@ export default function Profile() {
                   value={firstName}
                   disabled={!changeDetail}
                   onChange={onChange}
-                  className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white hover:shadow-xl rounded shadow-lg transition ease-in-out ${
+                  className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white  rounded transition ease-in-out ${
                     changeDetail && "bg-gray-200 focus:bg-gray-200"
                   }`}
                 />
@@ -233,7 +231,7 @@ export default function Profile() {
                   value={lastName}
                   disabled={!changeDetail}
                   onChange={onChange}
-                  className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white hover:shadow-xl rounded shadow-lg transition ease-in-out ${
+                  className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white rounded  transition ease-in-out ${
                     changeDetail && "bg-gray-200 focus:bg-gray-200"
                   }`}
                 />
@@ -244,7 +242,7 @@ export default function Profile() {
                   value={phoneNumber}
                   disabled={!changeDetail}
                   onChange={onChange}
-                  className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white hover:shadow-xl rounded shadow-lg transition ease-in-out ${
+                  className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white  rounded transition ease-in-out ${
                     changeDetail && "bg-gray-200 focus:bg-gray-200"
                   }`}
                 />
@@ -257,7 +255,7 @@ export default function Profile() {
                       value={agency}
                       disabled={!changeDetail}
                       onChange={onChange}
-                      className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white hover:shadow-xl rounded shadow-lg transition ease-in-out ${
+                      className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white rounded transition ease-in-out ${
                         changeDetail && "bg-gray-200 focus:bg-gray-200"
                       }`}
                     />
@@ -270,7 +268,7 @@ export default function Profile() {
                   id="email"
                   value={email}
                   disabled
-                  className="mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white rounded shadow-lg hover:shadow-xl transition ease-in-out"
+                  className="mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white rounded transition ease-in-out"
                 />
 
                 <div className="flex justify-center sm:justify-start whitespace-nowrap mb-6">

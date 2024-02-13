@@ -163,23 +163,21 @@ useEffect(() => {
       </div>
       <div className="flex flex-col gap-2 lg:flex-row">
         <div className="flex-1 lg:block">
-          <div className="sticky top-0 w-full col-span-1 overflow-hidden rounded h-screen50 lg:h-screen ">
+          <div className="sticky top-0 -full col-span-1 overflow-hidden rounded h-screen50 lg:h-screen ">
             <div className="overflow-hidden rounded shadow-inner">
-              <div className="relative w-full h-[calc(100vh-4rem)]">
-
-              </div>
+              <div className="relative w-full h-[calc(100vh-4rem)]"></div>
             </div>
           </div>
         </div>
 
         <div className="flex-1">
-          <div className="items-center px-2">
+          <div className="items-center px-2 ">
             {loading ? (
               <Spinner />
             ) : listings.length > 0 ? (
               <>
                 <main className="flex flex-col mx-auto items-center justify-center ">
-                  <ul className="w-full sm:grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2">
+                  <ul className="w-full  sm:grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2">
                     {listings.map((listing) => (
                       <ListingItem
                         key={listing.id}
