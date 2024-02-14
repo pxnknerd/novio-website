@@ -22,7 +22,12 @@ export default function SignUp() {
     password: "",
   }); 
   const [emailError, setEmailError] = useState("");
+  const [phoneNumberError, setPhoneNumberError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const isValidMoroccanPhoneNumber = (number) => {
+    const moroccanPhoneNumberRegex = /^\+212[5-9]\d{8}$/;
+    return moroccanPhoneNumberRegex.test(number);
+  };
   const { firstName, lastName, email, phoneNumber, password } = formData;
   const handleSignUpAsAgentClick = () => {
     // Navigate to the AgentSignUp page when clicked
@@ -50,12 +55,18 @@ export default function SignUp() {
     const domainRegex = /@([a-zA-Z0-9.-]+)$/;
     const match = email.match(domainRegex);
 
+    // Validate Moroccan phone number format
+    if (!isValidMoroccanPhoneNumber(formData.phoneNumber)) {
+      // Display a message or take appropriate action (e.g., toast)
+      setPhoneNumberError("Invalid Moroccan phone number format");
+      return;
+    }
+
     if (!match) {
       setEmailError("Invalid email address. Please enter a valid email.");
       return;
     }
-    
-   
+
     const emailDomain = match[1].toLowerCase();
     const allowedDomains = [
       "gmail.com",
@@ -85,6 +96,13 @@ export default function SignUp() {
       );
 
       const user = userCredential.user;
+      // Set initial profile picture
+      const initialProfilePicture = process.env.PUBLIC_URL + "/anonympfp.jpeg";
+; // You can customize this
+      await updateProfile(auth.currentUser, {
+        displayName: `${firstName} ${lastName}`,
+        photoURL: initialProfilePicture,
+      });
       const formDataCopy = { ...formData };
       delete formDataCopy.password;
       formDataCopy.timestamp = serverTimestamp();
@@ -169,6 +187,9 @@ export default function SignUp() {
               placeholder="Email address"
               className="w-full mt-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
             />
+              {emailError && (
+                <p className="text-red-500 text-sm mb-2">{emailError}</p>
+              )}
             <input
               type="tel"
               id="phoneNumber"
@@ -176,8 +197,8 @@ export default function SignUp() {
               onChange={onPhoneNumberChange}
               className="w-full mt-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
             />
-            {emailError && (
-              <p className="text-red-500 text-sm mb-2">{emailError}</p>
+            {phoneNumberError && (
+              <p className="text-red-500 text-sm mb-2">{phoneNumberError}</p>
             )}
             <div className="relative mt-6 ">
               <input

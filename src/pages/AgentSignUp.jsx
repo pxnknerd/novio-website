@@ -21,6 +21,8 @@ export default function AgentSignUp() {
     selectedCities: [],
   }); 
     const [emailError, setEmailError] = useState("");
+      const [phoneNumberError, setPhoneNumberError] = useState("");
+
     const [passwordError, setPasswordError] = useState("");
     const MoroccanCities = [
       "Agadir",
@@ -102,7 +104,7 @@ const onPhoneNumberChange = (e) => {
     // Validate Moroccan phone number format
     if (!isValidMoroccanPhoneNumber(formData.phoneNumber)) {
       // Display a message or take appropriate action (e.g., toast)
-      toast.error("Invalid Moroccan phone number format");
+      setPhoneNumberError("Invalid Moroccan phone number format");
       return;
     }
 
@@ -231,6 +233,9 @@ const onPhoneNumberChange = (e) => {
               onChange={onPhoneNumberChange}
               className="w-full mt-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
             />
+            {phoneNumberError && (
+              <p className="text-red-500 text-sm mb-2">{phoneNumberError}</p>
+            )}
 
             <div className="mt-6">
               <label

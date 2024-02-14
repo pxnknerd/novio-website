@@ -6,22 +6,34 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { db } from "../firebase";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import ListingItem from "../components/ListingItem";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { GrPrevious, GrNext } from "react-icons/gr";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
 
 export default function Home() {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+    const sliderRef = useRef(null);
+    const sliderRefSm = useRef(null);
+    const sliderRefMd = useRef(null);
+    const sliderRefLg = useRef(null);
+
   const navigateToResults = (filterType) => {
     // Use the `navigate` function to go to the Results page
     // Pass the filter type as a query parameter
     navigate("/results", { state: { filterType } });
   };
   const [offerListings, setOffersListings] = useState(null);
+
+  
   useEffect(() => {
     async function fetchListings() {
       try {
@@ -31,7 +43,7 @@ export default function Home() {
           listingsRef,
           where("offer", "==", true),
           orderBy("timestamp", "desc"),
-          limit(4)
+          limit(6)
         );
         const querySnap = await getDocs(q);
         const listings = [];
@@ -147,15 +159,34 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <div className=" mx-auto pt-4 pb-4 space-y-6 max-w-6xl">{offerListings && offerListings.length > 0 && (
+      <div className="hidden lg:block mx-auto pt-4 pb-4 space-y-6 max-w-6xl">
+        {offerListings && offerListings.length > 0 && (
           <div className="m-6 mb-6">
-            <h2 className="px-3 text-2xl mt-- ">Recent Offers</h2>
-            <Link to="/Offers">
-              <p className="px-3 text-sm text-black opacity-70 hover:text-black hover:opacity-100 transition duration-150 ease-in-out">
-                show more offers
-              </p>
-            </Link>
-            <ul className="sm:grid sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
+            <div className="flex  justify-between my-2 text-2xl">
+              <div>
+                <p>New offers on Beytty</p>
+                <p className="text-sm text-gray-500 opacity-80">
+                  Check out these new places on discount
+                </p>
+              </div>
+              <div className="flex space-x-4 justify-end">
+                <GrPrevious
+                  className="cursor-pointer hover:opacity-50"
+                  onClick={() => sliderRefLg.current.slickPrev()}
+                />
+                <GrNext
+                  className="cursor-pointer hover:opacity-50"
+                  onClick={() => sliderRefLg.current.slickNext()}
+                />
+              </div>
+            </div>
+            <Slider
+              ref={sliderRefLg} // Attach the ref to the Slider component
+              infinite={true}
+              speed={500}
+              slidesToShow={4}
+              slidesToScroll={1}
+            >
               {offerListings.map((listing) => (
                 <ListingItem
                   key={listing.id}
@@ -163,9 +194,131 @@ export default function Home() {
                   id={listing.id}
                 />
               ))}
-            </ul>
+            </Slider>
           </div>
-        )} </div>
+        )}{" "}
+      </div>
+      <div className="hidden md:block lg:hidden mx-auto pt-4 pb-4 space-y-6 max-w-6xl">
+        {offerListings && offerListings.length > 0 && (
+          <div className="m-6 mb-6">
+            <div className="flex justify-between my-4 text-2xl">
+              <div>
+                <p>New offers on Beytty</p>
+                <p className="text-sm text-gray-500 opacity-80">
+                  Check out these new places on discount
+                </p>
+              </div>{" "}
+              <div className="flex space-x-4 justify-end">
+                <GrPrevious
+                  className="cursor-pointer hover:opacity-50"
+                  onClick={() => sliderRefMd.current.slickPrev()}
+                />
+                <GrNext
+                  className="cursor-pointer hover:opacity-50"
+                  onClick={() => sliderRefMd.current.slickNext()}
+                />
+              </div>
+            </div>
+            <Slider
+              ref={sliderRefMd} // Attach the ref to the Slider component
+              infinite={true}
+              speed={500}
+              slidesToShow={3}
+              slidesToScroll={1}
+            >
+              {offerListings.map((listing) => (
+                <ListingItem
+                  key={listing.id}
+                  listing={listing.data}
+                  id={listing.id}
+                />
+              ))}
+            </Slider>
+          </div>
+        )}{" "}
+      </div>
+      <div className="hidden sm:block md:hidden mx-auto pt-4 pb-4 space-y-6 max-w-6xl">
+        {offerListings && offerListings.length > 0 && (
+          <div className="m-6 mb-6">
+            <div className="flex justify-between my-4 text-2xl">
+              <div>
+                <p>New offers on Beytty</p>
+                <p className="text-sm text-gray-500 opacity-80">
+                  Check out these new places on discount
+                </p>
+              </div>{" "}
+              <div className="flex space-x-4 justify-end">
+                <GrPrevious
+                  className="cursor-pointer hover:opacity-50"
+                  onClick={() => sliderRefSm.current.slickPrev()}
+                />
+                <GrNext
+                  className="cursor-pointer hover:opacity-50"
+                  onClick={() => sliderRefSm.current.slickNext()}
+                />
+              </div>
+            </div>
+            <Slider
+              ref={sliderRefSm} // Attach the ref to the Slider component
+              infinite={true}
+              speed={500}
+              slidesToShow={2}
+              slidesToScroll={1}
+            >
+              {offerListings.map((listing) => (
+                <ListingItem
+                  key={listing.id}
+                  listing={listing.data}
+                  id={listing.id}
+                />
+              ))}
+            </Slider>
+          </div>
+        )}{" "}
+      </div>
+      <div className="block sm:hidden w-full md:hidden ">
+        {offerListings && offerListings.length > 0 && (
+          <div className="m-6 mb-8">
+            <div className="flex px-2 justify-between my-2 text-xl">
+              <div>
+                <p>New offers on Beytty</p>
+                <p className="text-sm text-gray-500 opacity-80">
+                  Check out the new discounts
+                </p>
+              </div>{" "}
+              <div className="flex mt-2 space-x-4 justify-end">
+                <GrPrevious
+                  className="cursor-pointer focus:opacity-50"
+                  onClick={() => sliderRef.current.slickPrev()}
+                />
+                <GrNext
+                  className="cursor-pointer focus:opacity-50"
+                  onClick={() => sliderRef.current.slickNext()}
+                />
+              </div>
+            </div>
+            <div className="">
+              <Slider
+                ref={sliderRef} // Attach the ref to the Slider component
+                infinite={true}
+                dots={true}
+                speed={500}
+                slidesToShow={1}
+                slidesToScroll={1}
+                draggable={false}
+              >
+                {offerListings.map((listing) => (
+                  <ListingItem
+                    key={listing.id}
+                    listing={listing.data}
+                    id={listing.id}
+                  />
+                ))}
+              </Slider>
+            </div>
+          </div>
+        )}{" "}
+      </div>
 
       <div className="bg-gray-50">
         <div className="mx-auto p-8  flex max-w-6xl ">
@@ -241,7 +394,6 @@ export default function Home() {
       </div>
       <div className="hidden mx-auto p-4 space-y-6 max-w-6xl">
         {" "}
-        
         {rentListings && rentListings.length > 0 && (
           <div className="m-6 mb-6">
             <h2 className="px-3 text-2xl ">Places for rent</h2>

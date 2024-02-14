@@ -52,7 +52,7 @@ function App() {
           <Route path="/terms-and-services" element={<TermsAndServices />} />
           <Route path="/offers" element={<Offers />} />
           <Route path="/results" element={<Results />} />
-          <Route path="/results/:listingId" element={<Listing />} />
+          <Route path="/listingdetails/:listingId" element={<Listing />} />
           <Route path="/create-listing" element={<PrivateRoute />}>
             <Route
               path="/create-listing"

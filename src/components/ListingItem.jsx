@@ -5,7 +5,7 @@ import { MdDelete, MdEdit } from "react-icons/md";
 export default function ListingItem({ listing, id, onEdit, onDelete}) {
     return (
       <li className="flex flex-col relative justify-between items-center overflow-hidden rounded-md shadow-md bg-white m-2 md:m-1 text-black transition-all duration-300">
-        <Link className="contents" to={`/results/${id}`}>
+        <Link className="contents" to={`/listingdetails/${id}`}>
           <img
             className="h-[170px] w-full object-cover  transition-scale duration-200 ease-in"
             loading="lazy"

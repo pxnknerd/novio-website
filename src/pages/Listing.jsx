@@ -18,6 +18,10 @@ import Moment from "react-moment";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import MyPin from "../assets/svg/MyPin.svg";
+import { Link as ScrollLink } from "react-scroll";
+import { IoCallOutline } from "react-icons/io5";
+
+
 
 
 
@@ -218,13 +222,37 @@ const customMarkerIcon = new L.Icon({
                   </div>
                 </div>
               ) : (
-                <span>
-                  {listing.regularPrice
-                    .toString()
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}{" "}
-                  DH
-                  {listing.type === "rent" ? " / month" : ""}
-                </span>
+                <div className="flex justify-start w-full">
+                  <div className="flex flex-col items-start">
+                    <span className="text-2xl md:text-4xl font-bold mr-2">
+                      {listing.regularPrice
+                        .toString()
+                        .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      DH
+                    </span>
+                    <span className="text-lg">{listing.address}</span>
+                  </div>
+                  <div className="flex justify-end space-x-6  w-full">
+                    <div className="flex flex-col items-start">
+                      <span className="text-2xl md:text-4xl font-bold mr-2">
+                        {+listing.bedrooms > 1 ? `${listing.bedrooms}` : "1"}
+                      </span>
+                      <span className="text-lg ">Beds</span>
+                    </div>
+                    <div className="flex flex-col items-start">
+                      <span className="text-2xl md:text-4xl font-bold mr-2">
+                        {+listing.bathrooms > 1 ? `${listing.bathrooms}` : "1"}
+                      </span>
+                      <span className="text-lg ">Baths</span>
+                    </div>
+                    <div className="flex flex-col items-start">
+                      <span className="text-2xl md:text-4xl font-bold mr-2">
+                        {listing.size}
+                      </span>
+                      <span className="text-lg ">m²</span>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
             <div className="mt-8 grid grid-cols-3 grid-rows-2 gap-4 text-md ">
@@ -379,13 +407,37 @@ const customMarkerIcon = new L.Icon({
                 </div>
               </div>
             ) : (
-              <span>
-                {listing.regularPrice
-                  .toString()
-                  .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}{" "}
-                DH
-                {listing.type === "rent" ? " / month" : ""}
-              </span>
+              <div className="flex justify-start w-full">
+                <div className="flex flex-col items-start">
+                  <span className="text-xl md:text-4xl font-bold mr-2">
+                    {listing.regularPrice
+                      .toString()
+                      .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    DH
+                  </span>
+                  <span className="text-sm">{listing.address}</span>
+                </div>
+                <div className="flex justify-end space-x-2  w-full">
+                  <div className="flex flex-col items-start">
+                    <span className="text-xl md:text-4xl font-bold mr-2">
+                      {+listing.bedrooms > 1 ? `${listing.bedrooms}` : "1"}
+                    </span>
+                    <span className="text-sm ">Beds</span>
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-xl md:text-4xl font-bold mr-2">
+                      {+listing.bathrooms > 1 ? `${listing.bathrooms}` : "1"}
+                    </span>
+                    <span className="text-sm ">Baths</span>
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-xl md:text-4xl font-bold mr-2">
+                      {listing.size}
+                    </span>
+                    <span className="text-sm ">m²</span>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
           <div className="mt-8 grid grid-cols-2 grid-rows-3 gap-2 text-sm ">
@@ -458,7 +510,10 @@ const customMarkerIcon = new L.Icon({
             </p>
 
             <h1 className="mt-8 text-xl font-semibold">Location</h1>
-            <div className="mt-4 bg-gray-100 border-4 border-gray-300 h-[250px] rounded-lg">
+            <div
+              id="contactSection"
+              className="mt-4 bg-gray-100 border-4 border-gray-300 h-[250px] rounded-lg"
+            >
               {listing.latitude && listing.longitude && (
                 <MapContainer
                   center={[listing.latitude, listing.longitude]}
@@ -499,6 +554,14 @@ const customMarkerIcon = new L.Icon({
               {contactLandlord && (
                 <Contact userRef={listing.userRef} listing={listing} />
               )}
+              <div className="md:hidden fixed bottom-4 z-50 ">
+                <ScrollLink to="contactSection" smooth={true} duration={500}>
+                  <button className="flex items-center gap-2 px-4 bg-custom-red text-lg text-white rounded-md p-2">
+                    <IoCallOutline />
+                    Contact
+                  </button>
+                </ScrollLink>
+              </div>
             </div>
           </div>
         </div>
