@@ -344,7 +344,7 @@ const renderStep1 = () => {
         id="address"
         value={address}
         onChange={onChange}
-        placeholder="..."
+        placeholder=""
         className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-2 border-gray-300 rounded transition ease-in-out"
       />
       <p className=" text-gray-500 mb-2">

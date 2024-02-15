@@ -17,12 +17,7 @@ import { useLocation } from "react-router-dom";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import { FaSearch } from "react-icons/fa";
-
-
-
-
-
-
+import SecondHeader from "../components/SecondHeaderLg";
 
 export default function Results() {
   const location = useLocation();
@@ -35,82 +30,78 @@ export default function Results() {
   const listingsPerPage = 6;
   const [filters, setFilters] = useState({
     type: initialFilterType,
-    listingType: null, 
+    listingType: null,
   });
 
+  useEffect(() => {
+    async function fetchListings() {
+      try {
+        const listingRef = collection(db, "listings");
 
-useEffect(() => {
-  async function fetchListings() {
-    try {
-      const listingRef = collection(db, "listings");
-
-      // Create a base query with orderBy and limit
-      let baseQuery = query(
-        listingRef,
-        orderBy("timestamp", "desc"),
-        limit(listingsPerPage * currentPage)
-      );
-
-      // Apply filters
-      if (filters.type && filters.type !== "both") {
-        baseQuery = query(baseQuery, where("type", "==", filters.type));
-      }
-
-      if (filters.listingType) {
-        baseQuery = query(
-          baseQuery,
-          where("listingType", "==", filters.listingType)
-        );
-      }
-
-      // Execute the query
-      const querySnap = await getDocs(baseQuery);
-      const listings = querySnap.docs.map((doc) => ({
-        id: doc.id,
-        data: doc.data(),
-      }));
-
-      // If "Both" is selected, fetch both sale and rent listings
-      if (filters.type === "both") {
-        const bothQuery = query(
+        // Create a base query with orderBy and limit
+        let baseQuery = query(
           listingRef,
-          where("type", "in", ["sale", "rent"])
+          orderBy("timestamp", "desc"),
+          limit(listingsPerPage * currentPage)
         );
 
-        const bothSnap = await getDocs(bothQuery);
+        // Apply filters
+        if (filters.type && filters.type !== "both") {
+          baseQuery = query(baseQuery, where("type", "==", filters.type));
+        }
 
-        const bothListings = bothSnap.docs.map((doc) => ({
+        if (filters.listingType) {
+          baseQuery = query(
+            baseQuery,
+            where("listingType", "==", filters.listingType)
+          );
+        }
+
+        // Execute the query
+        const querySnap = await getDocs(baseQuery);
+        const listings = querySnap.docs.map((doc) => ({
           id: doc.id,
           data: doc.data(),
         }));
 
-        setListings(bothListings);
-      } else {
-        // If not "Both," set the listings based on the single type filter
-        setListings(listings);
+        // If "Both" is selected, fetch both sale and rent listings
+        if (filters.type === "both") {
+          const bothQuery = query(
+            listingRef,
+            where("type", "in", ["sale", "rent"])
+          );
+
+          const bothSnap = await getDocs(bothQuery);
+
+          const bothListings = bothSnap.docs.map((doc) => ({
+            id: doc.id,
+            data: doc.data(),
+          }));
+
+          setListings(bothListings);
+        } else {
+          // If not "Both," set the listings based on the single type filter
+          setListings(listings);
+        }
+
+        setTotalPages(Math.ceil(listings.length / listingsPerPage));
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching listings:", error);
+        toast.error("Could not fetch listings");
       }
-
-      setTotalPages(Math.ceil(listings.length / listingsPerPage));
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching listings:", error);
-      toast.error("Could not fetch listings");
     }
-  }
 
-  fetchListings();
-}, [params.categoryName, currentPage, filters]);
-
-
+    fetchListings();
+  }, [params.categoryName, currentPage, filters]);
 
   function handlePageChange(newPage) {
     setCurrentPage(newPage);
   }
 
-
-
   return (
     <div className="flex flex-col border-t-2 h-screen">
+      <SecondHeader />
       <div className="relative flex px-2 gap-4 mt-2 mb-2 bg-white ">
         <div className="relative md:px-2 flex items-center">
           <input
@@ -161,16 +152,18 @@ useEffect(() => {
           </Select>
         </div>
       </div>
-      <div className="flex flex-col gap-2 lg:flex-row">
-        <div className="flex-1 lg:block">
+      <div className="flex flex-col overflow-hidden lg:flex-row">
+        <div className="w-3/5 lg:block ">
           <div className="sticky top-0 -full col-span-1 overflow-hidden rounded h-screen50 lg:h-screen ">
-            <div className="overflow-hidden rounded shadow-inner">
-              <div className="relative w-full h-[calc(100vh-4rem)]"></div>
+            <div className="overflow-hidden rounded">
+              <div className="relative w-full h-[calc(100vh-4rem)]">
+                <GoogleMapComponent listings={listings} />
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="flex-1">
+        <div className="w-2/5 overflow-y-auto ">
           <div className="items-center px-2 ">
             {loading ? (
               <Spinner />

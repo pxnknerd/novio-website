@@ -115,7 +115,7 @@ useEffect(() => {
       return agentDoc.exists();
     };
   return (
-    <div className="lg:hidden bg-white mt-4 mb-4 top-0 z-40">
+    <div className="hidden lg:block bg-white mt-4 mb-4 top-0 z-40">
       <header className="flex justify-between items-center px-4 md:px-8 mx-auto max-w-8xl">
         <div className="flex container mx-auto w-full sm:hidden">
           <div className="flex items-center w-full">

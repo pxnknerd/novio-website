@@ -186,6 +186,7 @@ export default function Home() {
               speed={500}
               slidesToShow={4}
               slidesToScroll={1}
+              draggable={false}
             >
               {offerListings.map((listing) => (
                 <ListingItem
