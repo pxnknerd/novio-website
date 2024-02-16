@@ -18,6 +18,10 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import { FaSearch } from "react-icons/fa";
 import SecondHeader from "../components/SecondHeaderLg";
+import Footer from "../components/Footer";
+import MapBoxComponent from "../components/MapBoxComponent";
+import MapBox from "../components/MapBoxComponent";
+
 
 export default function Results() {
   const location = useLocation();
@@ -38,17 +42,15 @@ export default function Results() {
       try {
         const listingRef = collection(db, "listings");
 
-        // Create a base query with orderBy and limit
         let baseQuery = query(
           listingRef,
           orderBy("timestamp", "desc"),
           limit(listingsPerPage * currentPage)
         );
 
-        // Apply filters
-        if (filters.type && filters.type !== "both") {
-          baseQuery = query(baseQuery, where("type", "==", filters.type));
-        }
+if (filters.type) {
+  baseQuery = query(baseQuery, where("type", "==", filters.type));
+}
 
         if (filters.listingType) {
           baseQuery = query(
@@ -57,33 +59,13 @@ export default function Results() {
           );
         }
 
-        // Execute the query
         const querySnap = await getDocs(baseQuery);
         const listings = querySnap.docs.map((doc) => ({
           id: doc.id,
           data: doc.data(),
         }));
 
-        // If "Both" is selected, fetch both sale and rent listings
-        if (filters.type === "both") {
-          const bothQuery = query(
-            listingRef,
-            where("type", "in", ["sale", "rent"])
-          );
-
-          const bothSnap = await getDocs(bothQuery);
-
-          const bothListings = bothSnap.docs.map((doc) => ({
-            id: doc.id,
-            data: doc.data(),
-          }));
-
-          setListings(bothListings);
-        } else {
-          // If not "Both," set the listings based on the single type filter
-          setListings(listings);
-        }
-
+        setListings(listings);
         setTotalPages(Math.ceil(listings.length / listingsPerPage));
         setLoading(false);
       } catch (error) {
@@ -128,7 +110,6 @@ export default function Results() {
             </MenuItem>
             <MenuItem value="sale">For Sale</MenuItem>
             <MenuItem value="rent">For Rent</MenuItem>
-            <MenuItem value="both">Both</MenuItem>
           </Select>
           <Select
             className="bg-white h-10 sm:h-12 sm:py-6 rounded outline-0"
@@ -153,11 +134,12 @@ export default function Results() {
         </div>
       </div>
       <div className="flex flex-col overflow-hidden lg:flex-row">
-        <div className="w-3/5 lg:block ">
-          <div className="sticky top-0 -full col-span-1 overflow-hidden rounded h-screen50 lg:h-screen ">
-            <div className="overflow-hidden rounded">
-              <div className="relative w-full h-[calc(100vh-4rem)]">
-                <GoogleMapComponent listings={listings} />
+        <div className="w-3/5 ">
+          <div className="top-0 -full col-span-1 overflow-hidden rounded ">
+            <div className="rounded">
+              <div className=" w-full h-[calc(100vh-4rem)]">
+                {" "}
+                <MapBoxComponent listings={listings} />
               </div>
             </div>
           </div>
@@ -207,6 +189,7 @@ export default function Results() {
               </div>
             )}
           </div>
+          <Footer />
         </div>
       </div>
     </div>

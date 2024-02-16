@@ -191,13 +191,14 @@ const GoogleMapComponent = ({ listings }) => {
             />
           ))}
 
-           {selectedListing && (
+        {selectedListing && (
           <InfoWindow
             position={{
               lat: selectedListing.data.latitude,
               lng: selectedListing.data.longitude,
             }}
             onCloseClick={handleInfoWindowClose}
+            options={{ maxWidth: 300, minWidth: 300, maxHeight: 150 }} // Adjust these values as needed
           >
             {/* Integrate the ListingItem component here */}
             <ListingItem
