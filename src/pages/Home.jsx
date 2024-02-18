@@ -10,11 +10,15 @@ import { useEffect, useState, useRef } from "react";
 import { db } from "../firebase";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import ListingItem from "../components/ListingItem";
-import { FaSearch, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { GrPrevious, GrNext } from "react-icons/gr";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import { FaSearch} from "react-icons/fa";
+import MapboxComponent from "../components/MapboxComponent";
+
+
+
 
 
 export default function Home() {
@@ -25,6 +29,7 @@ export default function Home() {
     const sliderRefSm = useRef(null);
     const sliderRefMd = useRef(null);
     const sliderRefLg = useRef(null);
+const [address, setAddress] = useState("");
 
   const navigateToResults = (filterType) => {
     // Use the `navigate` function to go to the Results page
@@ -33,7 +38,7 @@ export default function Home() {
   };
   const [offerListings, setOffersListings] = useState(null);
 
-  
+
   useEffect(() => {
     async function fetchListings() {
       try {
@@ -121,14 +126,35 @@ export default function Home() {
     }
     fetchListings();
   }, []);
+  // places for sale
+  const [Listings, setListings] = useState(null);
+  useEffect(() => {
+    async function fetchListings() {
+      try {
+        //get reference
+        const listingsRef = collection(db, "listings");
+        const q = query(
+          listingsRef,
+          orderBy("timestamp", "desc"),
+          limit(4)
+        );
+        const querySnap = await getDocs(q);
+        const listings = [];
+        querySnap.forEach((doc) => {
+          return listings.push({
+            id: doc.id,
+            data: doc.data(),
+          });
+        });
+        setListings(listings);
+        console.log(listings);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    fetchListings();
+  }, []);
 
-  const handleNavigation = (path) => {
-    setLoading(true);
-    // Add a delay of 500 milliseconds (adjust as needed)
-    setTimeout(() => {
-      navigate(path);
-    }, 2000);
-  };
 
   return (
     <div>
@@ -159,8 +185,9 @@ export default function Home() {
           </div>
         </div>
       </div>
+
       <div className="hidden lg:block mx-auto pt-4 pb-4 space-y-6 max-w-6xl">
-        {offerListings && offerListings.length > 0 && (
+        {Listings && Listings.length > 0 && (
           <div className="m-6 mb-6">
             <div className="flex  justify-between my-2 text-2xl">
               <div>
@@ -188,7 +215,7 @@ export default function Home() {
               slidesToScroll={1}
               draggable={false}
             >
-              {offerListings.map((listing) => (
+              {Listings.map((listing) => (
                 <ListingItem
                   key={listing.id}
                   listing={listing.data}
@@ -200,7 +227,7 @@ export default function Home() {
         )}{" "}
       </div>
       <div className="hidden md:block lg:hidden mx-auto pt-4 pb-4 space-y-6 max-w-6xl">
-        {offerListings && offerListings.length > 0 && (
+        {Listings && Listings.length > 0 && (
           <div className="m-6 mb-6">
             <div className="flex justify-between my-4 text-2xl">
               <div>
@@ -227,7 +254,7 @@ export default function Home() {
               slidesToShow={3}
               slidesToScroll={1}
             >
-              {offerListings.map((listing) => (
+              {Listings.map((listing) => (
                 <ListingItem
                   key={listing.id}
                   listing={listing.data}
@@ -239,7 +266,7 @@ export default function Home() {
         )}{" "}
       </div>
       <div className="hidden sm:block md:hidden mx-auto pt-4 pb-4 space-y-6 max-w-6xl">
-        {offerListings && offerListings.length > 0 && (
+        {Listings && Listings.length > 0 && (
           <div className="m-6 mb-6">
             <div className="flex justify-between my-4 text-2xl">
               <div>
@@ -266,7 +293,7 @@ export default function Home() {
               slidesToShow={2}
               slidesToScroll={1}
             >
-              {offerListings.map((listing) => (
+              {Listings.map((listing) => (
                 <ListingItem
                   key={listing.id}
                   listing={listing.data}
@@ -278,7 +305,7 @@ export default function Home() {
         )}{" "}
       </div>
       <div className="block sm:hidden w-full md:hidden ">
-        {offerListings && offerListings.length > 0 && (
+        {Listings && Listings.length > 0 && (
           <div className="m-6 mb-8">
             <div className="flex px-2 justify-between my-2 text-xl">
               <div>
@@ -308,7 +335,7 @@ export default function Home() {
                 slidesToScroll={1}
                 draggable={false}
               >
-                {offerListings.map((listing) => (
+                {Listings.map((listing) => (
                   <ListingItem
                     key={listing.id}
                     listing={listing.data}
@@ -434,6 +461,7 @@ export default function Home() {
           </div>
         )}
       </div>
+
     </div>
   );
 }

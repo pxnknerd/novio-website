@@ -13,11 +13,11 @@ body {
 
 }
 
-semibold {
+.semibold {
     font-weight: 600; 
 }
 
-bold {
+.bold {
     font-weight: 700;
 }
 
@@ -58,7 +58,7 @@ bold {
   }
 
 .bg-custom-gray:hover {
-    background-color: #f5f5f5;
+    background-color: #c7c7c7;
   }
   
 
@@ -92,6 +92,71 @@ html{
     align-items: center;
     justify-content: center;
     
+}
+
+
+/* Add styles for PlacesAutocomplete */
+.autocomplete-dropdown-container {
+
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  text-align: left;
+  font-size: 15px;
+}
+
+/* Hide the scrollbar for webkit browsers */
+.autocomplete-dropdown-container::-webkit-scrollbar {
+  display: none;
+}
+
+.suggestion-item {
+  padding: 10px;
+  cursor: pointer;
+   text-align: left;
+}
+
+.suggestion-item:hover {
+  background-color: #41b6e6;
+  color: #fff;
+}
+
+/* Style the input box */
+input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  outline: none;
+}
+
+/* Style the search icon */
+.relative .absolute.right-4.top-0.h-full.flex.items-center {
+  color: #555; /* Change the color as needed */
+  cursor: pointer;
+}
+
+/* Customize the loading message */
+.autocomplete-dropdown-container div:only-child {
+  padding: 10px;
+  text-align: center;
+  background-color: #fff;
+
+}
+
+.marker-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #ff0000; /* Red color */
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.custom-autocomplete .MuiAutocomplete-popupIndicator {
+    display: none;
 }
 
 
