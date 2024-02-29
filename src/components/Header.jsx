@@ -1,17 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { IoMenu } from 'react-icons/io5';
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { IoMenu } from "react-icons/io5";
 import { VscChromeClose } from "react-icons/vsc";
-import { db } from '../firebase';
-import { doc, getDoc, getDocs, orderBy, query, where } from 'firebase/firestore';
+import { db } from "../firebase";
+import {
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  where,
+} from "firebase/firestore";
 import { Link } from "react-router-dom";
-import CreateListingPopUp from './CreateListingPopUp';
-
-
+import CreateListingPopUp from "./CreateListingPopUp";
 
 export default function Header() {
-  const [pageState, setPageState] = useState('Sign in');
+  const [pageState, setPageState] = useState("Sign in");
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isCreateListingPopUpOpen, setCreateListingPopUpOpen] = useState(false);
   const location = useLocation();
@@ -23,70 +28,69 @@ export default function Header() {
     // Pass the filter type as a query parameter
     navigate("/results", { state: { filterType } });
   };
-   const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const auth = getAuth();
 
-    useEffect(() => {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        if (user) {
-          setPageState("My Profile");
-        } else {
-          // User is not authenticated, reset states
-          setPageState("Sign in");
-          setIsAgentUser(false);
-          setUserStatus(null);
-        }
-
-        // Set loading to false after the authentication state settles
-        setLoading(false);
-      });
-
-      // Unsubscribe from the auth state listener when the component unmounts
-      return () => {
-        unsubscribe();
-      };
-    }, [auth]);
-
-useEffect(() => {
-  
-  async function fetchData() {
-    try {
-      // Check if the user is authenticated
-      const user = auth.currentUser;
-      if (!user) {
-        // Handle the case where the user is not authenticated
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setPageState("My Profile");
+      } else {
+        // User is not authenticated, reset states
+        setPageState("Sign in");
         setIsAgentUser(false);
         setUserStatus(null);
-        setPageState("Sign in");
-        return;
       }
 
-      // Set the page state to 'My Profile' since the user is authenticated
-      setPageState("My Profile");
+      // Set loading to false after the authentication state settles
+      setLoading(false);
+    });
 
-      // Check if the user is an agent
-      const agentStatus = await isAgent();
-      setIsAgentUser(agentStatus);
+    // Unsubscribe from the auth state listener when the component unmounts
+    return () => {
+      unsubscribe();
+    };
+  }, [auth]);
 
-      // Fetch user status
-      const userDocRef = doc(db, "agents", user.uid);
-      const userDoc = await getDoc(userDocRef);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // Check if the user is authenticated
+        const user = auth.currentUser;
+        if (!user) {
+          // Handle the case where the user is not authenticated
+          setIsAgentUser(false);
+          setUserStatus(null);
+          setPageState("Sign in");
+          return;
+        }
 
-      if (userDoc.exists()) {
-        // Assuming the user status is stored as a field named "status"
-        const status = userDoc.data().status;
-        setUserStatus(status);
-      } else {
-        // Handle the case where the user document doesn't exist
-        setUserStatus(null);
+        // Set the page state to 'My Profile' since the user is authenticated
+        setPageState("My Profile");
+
+        // Check if the user is an agent
+        const agentStatus = await isAgent();
+        setIsAgentUser(agentStatus);
+
+        // Fetch user status
+        const userDocRef = doc(db, "agents", user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+          // Assuming the user status is stored as a field named "status"
+          const status = userDoc.data().status;
+          setUserStatus(status);
+        } else {
+          // Handle the case where the user document doesn't exist
+          setUserStatus(null);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
       }
-    } catch (error) {
-      console.error("Error fetching data:", error);
     }
-  }
 
-  fetchData();
-}, [auth.currentUser]);
+    fetchData();
+  }, [auth.currentUser]);
 
   function pathMatchRoute(route) {
     return route === location.pathname;
@@ -109,14 +113,14 @@ useEffect(() => {
   };
 
   const isAgent = async () => {
-      const agentDocRef = doc(db, "agents", auth.currentUser.uid);
-      const agentDoc = await getDoc(agentDocRef);
-      return agentDoc.exists();
-    };
+    const agentDocRef = doc(db, "agents", auth.currentUser.uid);
+    const agentDoc = await getDoc(agentDocRef);
+    return agentDoc.exists();
+  };
   return (
     <div className="bg-white border-b-[10px] mt-3 border-white top-0 z-40">
       <header className="flex justify-between items-center px-4 md:px-8 mx-auto max-w-6xl">
-        <div className="flex container mx-auto w-full justify-center  md:hidden">
+        <div className=" md:hidden flex container mx-auto w-full justify-center">
           <div className="flex justify-start w-full">
             <IoMenu className="w-8 h-8" onClick={toggleMobileMenu} />
           </div>
@@ -158,7 +162,7 @@ useEffect(() => {
                   ? "font-bold text-black border-b-3 border-black"
                   : " text-black border-b-3 border-transparent"
               }`}
-              onClick={() => navigate("")}
+              onClick={() => navigate("/sell")}
             >
               Sell
             </li>
@@ -216,6 +220,7 @@ useEffect(() => {
           )}
         </div>
       </header>
+
       {/* Dark Overlay */}
       {isCreateListingPopUpOpen && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm z-50" />
@@ -275,7 +280,7 @@ useEffect(() => {
               Rent
             </li>
             <div className="border-t flex-1 after:border-gray-300"></div>
-            <li>Sell</li>
+            <li onClick={() => navigateAndCloseMobileMenu("/sell")}>Sell</li>
             <div className="border-t flex-1 after:border-gray-300"></div>
           </ul>
           {/* Last Menu Item */}

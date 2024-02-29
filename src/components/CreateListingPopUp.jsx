@@ -15,36 +15,22 @@ import { useNavigate } from "react-router-dom";
 import AgentGuard from "../components/AgentGuard";
 import { GrFormNext } from "react-icons/gr";
 import { GrFormPrevious } from "react-icons/gr";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L, { Icon } from "leaflet";
-import "leaflet-providers/leaflet-providers";
-import MyPin from "../assets/svg/MyPin.svg";
+import ReactMapGL, { Marker, NavigationControl } from "react-map-gl";
+import { FilePond, registerPlugin } from "react-filepond";
+import "filepond/dist/filepond.min.css";
+import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css";
+import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 
-
-
-
-
-const customMarkerIcon = new L.Icon({
-  iconUrl: MyPin, // Assuming it's in the root of the 'public' folder
-  iconSize: [35, 58],
-  iconAnchor: [17.5, 29],
-  popupAnchor: [1, -34],
-  // Optionally, customize other values based on your needs
-});
+registerPlugin(FilePondPluginImagePreview);
 
 
 
 const CreateListingPopUp = ({ closePopUp }) => {
   console.log("CreateListingPopUp Rendered");
   const navigate = useNavigate();
-  const mapRef = useRef(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [images, setImages] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState([]);
   const auth = getAuth();
-  const [mapCenter, setMapCenter] = useState([33.5731, -7.5898]); // Casablanca coordinates
-  const [markerPosition, setMarkerPosition] = useState([33.5731, -7.5898]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     type: "rent",
@@ -58,7 +44,6 @@ const CreateListingPopUp = ({ closePopUp }) => {
     city: "",
     address: "",
     description: "",
-    offer: false,
     latitude: 0,
     longitude: 0,
     regularPrice: 0,
@@ -77,11 +62,27 @@ const CreateListingPopUp = ({ closePopUp }) => {
     parking,
     furnished,
     description,
-    offer,
     regularPrice,
     discountedPrice,
   } = formData;
 
+   const [viewport, setViewport] = useState({
+     width: "100%",
+     height: "100%",
+     latitude: 31.7917, // Latitude for the center of Morocco
+     longitude: -7.0926, // Longitude for the center of Morocco
+     zoom: 6,
+   });
+
+const handleMapClick = (event) => {
+  const { lng, lat } = event.lngLat;
+  setFormData((prevFormData) => ({
+    ...prevFormData,
+    latitude: lat,
+    longitude: lng,
+  }));
+      console.log("Latitude:", lat, "Longitude:", lng);
+};
 
   function onChange(e) {
     let boolean = null;
@@ -91,15 +92,7 @@ const CreateListingPopUp = ({ closePopUp }) => {
     if (e.target.value === "false") {
       boolean = false;
     }
-    if (e.target.files) {
-      const selectedImages = Array.from(e.target.files);
-      setImages(selectedImages);
 
-      const previews = selectedImages.map((image) =>
-        URL.createObjectURL(image)
-      );
-      setImagePreviews(previews);
-    }
     if (!e.target.files) {
       setFormData((prevState) => ({
         ...prevState,
@@ -116,6 +109,14 @@ const CreateListingPopUp = ({ closePopUp }) => {
       setFormData((prevState) => ({
         ...prevState,
         yearBuilt: parseInt(e.target.value),
+      }));
+    }
+
+    // Handle 'regularPrice' input
+    if (e.target.id === "regularPrice") {
+      setFormData((prevState) => ({
+        ...prevState,
+        regularPrice: parseFloat(e.target.value), // Convert to number
       }));
     }
 
@@ -151,11 +152,7 @@ const CreateListingPopUp = ({ closePopUp }) => {
       }
     }
     setLoading(true);
-    if (+discountedPrice >= +regularPrice) {
-      toast.error("Discounted price needs to be less than regular price");
-      setLoading(false); // Set loading state to false here
-      return;
-    }
+
 
     if (images.length > 10) {
       setLoading(false);
@@ -213,9 +210,8 @@ const CreateListingPopUp = ({ closePopUp }) => {
       ...formData,
       imgUrls,
       timestamp: serverTimestamp(),
+      lastEdited: null, 
       userRef: auth.currentUser.uid,
-      latitude: markerPosition[0],
-      longitude: markerPosition[1],
     };
 
     delete formDataCopy.images;
@@ -224,14 +220,13 @@ const CreateListingPopUp = ({ closePopUp }) => {
     setLoading(false);
     toast.success("Listing created");
     closePopUp();
-     navigate(`/results/${docRef.id}`);
+    navigate(`/listingdetails/${docRef.id}`);
   }
-  
 
   if (loading) {
     return <Spinner />;
   }
- 
+
   const stepTitles = [
     "Location",
     "Listing",
@@ -240,66 +235,25 @@ const CreateListingPopUp = ({ closePopUp }) => {
     "Images",
   ];
 
-const renderImagePreviews = () => {
-  const firstRowImages = imagePreviews.slice(0, 4);
-  const secondRowImages = imagePreviews.slice(4, 8);
+ 
 
-  const renderRow = (rowImages, rowKey) => (
-    <div key={rowKey} className="flex space-x-2 mb-6">
-      {rowImages.map((preview, index) => (
-        <div key={index} className="relative">
-          <img src={preview} alt={`Preview ${index}`} className="h-20 w-20" />
-          <button
-            type="button"
-            onClick={() => handleImageRemove(index + rowKey * 4)}
-            className="absolute top-0 right-1 text-sm text-white rounded-full cursor-pointer"
-          >
-            x
-          </button>
-        </div>
-      ))}
-    </div>
-  );
+  const renderStepIndicator = () => {
+    return (
+      <div className="flex items-center justify-between mb-8 mt-4">
+        {stepTitles.map((title, index) => (
+          <div
+            key={index}
+            className={`flex-1 h-2 ${
+              index + 1 < currentStep
+                ? "bg-custom-red" // Highlight the steps before the current step
+                : "bg-gray-300"
+            }`}
+          ></div>
+        ))}
+      </div>
+    );
+  };
 
-  return (
-    <>
-      {renderRow(firstRowImages, 0)}
-      {renderRow(secondRowImages, 1)}
-    </>
-  );
-};
-
-const handleImageRemove = (index) => {
-  const updatedImages = [...images];
-  updatedImages.splice(index, 1);
-
-  const updatedPreviews = updatedImages.map((image) =>
-    URL.createObjectURL(image)
-  );
-
-  setImages(updatedImages);
-  setImagePreviews(updatedPreviews);
-};
-
-
-const renderStepIndicator = () => {
-  return (
-    <div className="flex items-center justify-between mb-8 mt-4">
-      {stepTitles.map((title, index) => (
-        <div
-          key={index}
-          className={`flex-1 h-2 ${
-            index + 1 < currentStep
-              ? "bg-custom-red" // Highlight the steps before the current step
-              : "bg-gray-300"
-          }`}
-        ></div>
-      ))}
-    </div>
-  );
-};
-
-  
   const nextStep = () => {
     setCurrentStep(currentStep + 1);
   };
@@ -324,66 +278,63 @@ const renderStepIndicator = () => {
         return null;
     }
   };
-const renderStep1 = () => {
-  const handleDragEnd = (event) => {
-    const { lat, lng } = event.target.getLatLng();
-    setMarkerPosition([lat, lng]);
-    setMapCenter([lat, lng]);
-    mapRef.current.panTo([lat, lng], { animate: true, duration: 0.5 });
-  };
-
-
-  return (
-    <div>
-      <h1 className="text-3xl mb-12">Where is your place located ?</h1>
-      <p className=" text-gray-500 mb-2">
-        Type the exact address of your home.
-      </p>
-      <input
-        type="address"
-        id="address"
-        value={address}
-        onChange={onChange}
-        placeholder=""
-        className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-2 border-gray-300 rounded transition ease-in-out"
-      />
-      <p className=" text-gray-500 mb-2">
-        Drag the pin on the map to select your home location.
-      </p>
-      <MapContainer
-        center={mapCenter}
-        zoom={11}
-        style={{ height: "400px", width: "100%" }}
-        ref={mapRef}
-      >
-        <TileLayer
-          url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}.png"
-          minZoom={0}
-          maxZoom={20}
-          attribution='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  const renderStep1 = () => {
+    return (
+      <div>
+        <h1 className="text-3xl mb-12">Where is your place located ?</h1>
+        <p className=" text-gray-500 mb-2">
+          Type the exact address of your home.
+        </p>
+        <input
+          type="address"
+          id="address"
+          value={address}
+          onChange={onChange}
+          placeholder=""
+          className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-2 border-gray-300 rounded transition ease-in-out"
         />
+        <p className=" text-gray-500 mb-2">
+          Click and drop the pin on the map to select the location.
+        </p>
+        <div className="h-[400px] bg-gray-200">
+          <ReactMapGL
+            {...viewport}
+            mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
+            mapStyle="mapbox://styles/mohamedmakdad/clsqz4sct00xn01pf8o9vg38g"
+            onMove={(evt) => setViewport(evt.viewport)}
+            onClick={handleMapClick}
+          >
+            {formData.latitude !== 0 && formData.longitude !== 0 && (
+              <Marker
+                latitude={formData.latitude}
+                longitude={formData.longitude}
+                offsetTop={-20}
+                offsetLeft={-10}
+                anchor="bottom" // Set the anchor point to the bottom
+              >
+                <img
+                  src="/MyPin.svg"
+                  alt="Pin"
+                  style={{ width: "40px", height: "40px" }}
+                />
+              </Marker>
+            )}
+            <div style={{ position: "absolute", right: 10, top: 10 }}>
+              <NavigationControl />
+            </div>
+          </ReactMapGL>{" "}
+        </div>
 
-        <Marker
-          position={markerPosition}
-          draggable={true}
-          icon={customMarkerIcon}
-          eventHandlers={{ dragend: handleDragEnd }}
+        <button
+          className="mb-6 px-3 py-2 mt-6 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+          onClick={nextStep}
         >
-          <Popup>Drag me to your exact home location</Popup>
-        </Marker>
-      </MapContainer>
-
-      <button
-        className="mb-6 px-3 py-2 mt-6 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-        onClick={nextStep}
-      >
-        Next
-        <GrFormNext className="inline" />
-      </button>
-    </div>
-  );
-};
-
+          Next
+          <GrFormNext className="inline" />
+        </button>
+      </div>
+    );
+  };
 
   const renderStep2 = () => {
     return (
@@ -580,38 +531,9 @@ const renderStep1 = () => {
     return (
       <div>
         <h1 className="text-3xl mb-12"> Pricing details for your listing.</h1>
-        <p className="text-gray-500 mb-2  "> Is your listing on discount ?</p>
-        <div className="flex mb-6">
-          <button
-            type="button"
-            id="offer"
-            value={true}
-            onClick={onChange}
-            className={`mr-3 px-7 py-3 font-medium rounded text-sm uppercase   transition duration-150 ease-in-out w-full ${
-              !offer
-                ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
-            }`}
-          >
-            yes
-          </button>
-          <button
-            type="button"
-            id="offer"
-            value={false}
-            onClick={onChange}
-            className={`ml-3 px-7 py-3 font-medium  text-sm uppercase rounded transition duration-150 ease-in-out w-full ${
-              offer
-                ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
-            }`}
-          >
-            no
-          </button>
-        </div>
         <div className="flex items-center mb-6">
           <div className="">
-            <p className="text-gray-500 mb-2 ">Original price</p>
+            <p className="text-gray-500 mb-2 ">Set your desired price</p>
             <div className="flex w-full justify-center items-center space-x-6">
               <input
                 type="number"
@@ -631,32 +553,6 @@ const renderStep1 = () => {
             </div>
           </div>
         </div>
-        {offer && (
-          <div className="flex items-center mb-6">
-            <div className="">
-              <p className="text-gray-500 mb-2 ">New Discounted Price</p>
-              <div className="flex w-full justify-center items-center space-x-6">
-                <input
-                  type="number"
-                  id="discountedPrice"
-                  value={discountedPrice}
-                  onChange={onChange}
-                  min="50"
-                  max="400000000"
-                  required={offer}
-                  className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
-                />
-                {type === "rent" && (
-                  <div className="">
-                    <p className="text-md w-full whitespace-nowrap">
-                      DH / Month
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="flex space-x-6 mt-12 justify-start mb-6">
           <button
@@ -708,47 +604,86 @@ const renderStep1 = () => {
       </div>
     );
   };
-  const renderStep5 = () => {
-    return (
-      <div>
-        <h1 className="text-3xl mb-12">Upload images of your place.</h1>
-        {renderImagePreviews()}
-        <div className="mb-6">
-          <p className="text-lg ">Images</p>
-          <p className="text-gray-600">
-            The first image will be the cover (max 6)
-          </p>
-          <input
-            type="file"
-            id="images"
-            onChange={onChange}
-            accept=".jpg,.png,.jpeg"
-            multiple
-            className="w-full px-3 py-1.5 text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:bg-white focus:border-black"
-          />
-        </div>
-        <button
-          type="submit"
-          className="mb-6 w-full px-7 py-3 bg-custom-red text-white font-medium text-sm uppercase rounded shadow-md hover:opacity-70 hover:shadow-lg focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-        >
-          Create Listing
-        </button>
-        <button
-          className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-          onClick={prevStep}
-        >
-          <GrFormPrevious className="inline" /> Previous
-        </button>
-      </div>
-    );
+const renderStep5 = () => {
+const handleFileChange = async (files) => {
+  const validFiles = [];
+
+  for (const file of files) {
+    const image = new Image();
+    image.src = URL.createObjectURL(file.file);
+
+    await new Promise((resolve) => {
+      image.onload = () => {
+        const aspectRatio = image.width / image.height;
+        const tolerance = 0.1; // Adjust the tolerance level as needed
+
+        if (Math.abs(aspectRatio - 16 / 9) <= tolerance) {
+          validFiles.push(file.file);
+        }
+
+        resolve();
+      };
+    });
+  }
+
+  if (validFiles.length < files.length) {
+    toast.error("Images should have an aspect ratio close to 16:9.");
+  }
+
+  setImages(validFiles);
+};
+
+
+
+
+  // Custom options for FilePond
+  const filePondOptions = {
+    allowMultiple: true,
+    acceptedFileTypes: ["image/*"],
+    maxFiles: 6,
+    imagePreviewHeight: 100, // Set your desired height for each image preview
+    imageCropAspectRatio: "16:9", // Crop images to a 16:9 aspect ratio
   };
+
+  return (
+    <div>
+      <h1 className="text-3xl mb-6">Upload images of your place.</h1>
+      <div className="mb-6">
+        <p className="text-lg">Images</p>
+        <p className="text-gray-600">
+          The first image will be the cover (max 6)
+        </p>
+        <FilePond
+          files={images}
+          onupdatefiles={handleFileChange}
+          {...filePondOptions}
+        />
+      </div>
+      <button
+        type="submit"
+        className="mb-6 w-full px-7 py-3 bg-custom-red text-white font-medium text-sm uppercase rounded shadow-md hover:opacity-70 hover:shadow-lg focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+      >
+        Create Listing
+      </button>
+      <button
+        className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+        onClick={prevStep}
+      >
+        <GrFormPrevious className="inline" /> Previous
+      </button>
+    </div>
+  );
+};
+
+
+
   return (
     <AgentGuard>
       <main>
         <form
           onSubmit={onSubmit}
           className="max-w-md px-2 w-[28rem] mx-auto bg-white rounded-md  relative"
-          onClick={(e) => e.stopPropagation()} 
+          onClick={(e) => e.stopPropagation()}
         >
           {renderStepIndicator()}
           {renderStepContent()}
@@ -758,4 +693,3 @@ const renderStep1 = () => {
   );
 };
 export default CreateListingPopUp;
-

@@ -6,7 +6,7 @@ import { IoLogoWhatsapp } from "react-icons/io";
 
 export default function Footer() {
   return (
-    <footer className="bg-neutral-00 mt-8 text-center">
+    <footer className="bg-neutral-00 mt-8 ">
       <div className="max-w-6xl mb-8  mx-auto">
         <div className="flex items-center justify-center border-t-2 border-b-2 border-neutral-200 p-6 dark:border-neutral-200 lg:justify-between">
           <div className="mr-12 hidden md:block">
@@ -80,9 +80,9 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mx-6 pt-8 pb-4 text-center">
-          <div className="mb-6">
-            <h5 className="mb-2 font-bold uppercase">Explore Our World</h5>
+        <div className="mx-6 pt-8 pb-4 ">
+          <div className="mb-6 text-center">
+            <h5 className="mb-2 font-bold uppercase">Explore The Real Estate World With Beytty</h5>
 
             <p className="mb-4">
               Embark on an adventure of a lifetime and uncover hidden wonders.
@@ -90,7 +90,7 @@ export default function Footer() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 mb-4">
+<div className='flex justify-between mx-auto w-full'>
             <div className="mb-6">
               <h5 className="mb-2.5 font-bold ">
                 Adventures
@@ -213,9 +213,8 @@ export default function Footer() {
                 </li>
               </ul>
             </div>
-          </div>
         </div>
-
+</div>
         <div className=" flex justify-center items-center text-black">
           <span className='mt-1'>© 2024 Copyright </span>
           <a className="mx-3" href="#">

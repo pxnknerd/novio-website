@@ -169,7 +169,7 @@ useEffect(() => {
                   ? "font-bold text-black border-b-3 border-black"
                   : " text-black border-b-3 border-transparent"
               }`}
-              onClick={() => navigate("")}
+              onClick={() => navigate("/sell")}
             >
               Sell
             </li>
@@ -286,7 +286,7 @@ useEffect(() => {
               Rent
             </li>
             <div className="border-t flex-1 after:border-gray-300"></div>
-            <li>Sell</li>
+            <li onClick={() => navigate("/Sell")}>Sell</li>
             <div className="border-t flex-1 after:border-gray-300"></div>
           </ul>
           {/* Last Menu Item */}

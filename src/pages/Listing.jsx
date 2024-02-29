@@ -21,12 +21,6 @@ import MyPin from "../assets/svg/MyPin.svg";
 import { Link as ScrollLink } from "react-scroll";
 import { IoCallOutline } from "react-icons/io5";
 
-
-
-
-
-
-
 export default function Listing() {
   const auth = getAuth();
   const params = useParams();
@@ -43,15 +37,13 @@ export default function Listing() {
     setIsPopupOpen(!isPopupOpen);
   };
 
-
-const customMarkerIcon = new L.Icon({
-  iconUrl: MyPin, // Assuming it's in the root of the 'public' folder
-  iconSize: [35, 58],
-  iconAnchor: [17.5, 29],
-  popupAnchor: [1, -34],
-  // Optionally, customize other values based on your needs
-});
-
+  const customMarkerIcon = new L.Icon({
+    iconUrl: MyPin, // Assuming it's in the root of the 'public' folder
+    iconSize: [35, 58],
+    iconAnchor: [17.5, 29],
+    popupAnchor: [1, -34],
+    // Optionally, customize other values based on your needs
+  });
 
   useEffect(() => {
     async function fetchListing() {
@@ -193,7 +185,7 @@ const customMarkerIcon = new L.Icon({
                 <div className="flex justify-start w-full">
                   <div className="flex flex-col items-start">
                     <span className="text-2xl md:text-4xl font-bold mr-2">
-                      {listing.discountedPrice
+                      {listing.regularPrice
                         .toString()
                         .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                       DH
@@ -284,7 +276,7 @@ const customMarkerIcon = new L.Icon({
                   <>
                     <FaRulerCombined className="text-2xl mr-2" />
                     {(
-                      (listing.discountedPrice || listing.regularPrice) /
+                      (listing.regularPrice || listing.regularPrice) /
                       listing.size
                     ).toFixed(2)}
                     DH/m²
@@ -357,7 +349,7 @@ const customMarkerIcon = new L.Icon({
                   <div className="w-full">
                     <button
                       onClick={() => setContactLandlord(true)}
-                      className="flex justify-center  bg-custom-red border-2 text-white rounded-md w-full py-3 text-xl"
+                      className="flex justify-center  bg-black border-2 text-white rounded-md w-full py-3 text-xl"
                     >
                       Contact agent
                     </button>
@@ -378,7 +370,7 @@ const customMarkerIcon = new L.Icon({
               <div className="flex justify-start w-full">
                 <div className="flex flex-col items-start">
                   <span className="text-xl md:text-4xl font-bold mr-2">
-                    {listing.discountedPrice
+                    {listing.regularPrice
                       .toString()
                       .replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                     DH
@@ -469,7 +461,7 @@ const customMarkerIcon = new L.Icon({
                 <>
                   <FaRulerCombined className="text-md mr-2" />
                   {(
-                    (listing.discountedPrice || listing.regularPrice) /
+                    (listing.regularPrice || listing.regularPrice) /
                     listing.size
                   ).toFixed(2)}
                   DH/m²
@@ -545,7 +537,7 @@ const customMarkerIcon = new L.Icon({
                   <div className="w-full">
                     <button
                       onClick={() => setContactLandlord(true)}
-                      className="flex justify-center  bg-custom-red border-2 text-white rounded-md w-full py-3 text-xl"
+                      className="flex justify-center  bg-black border-2 text-white rounded-md w-full py-3 text-xl"
                     >
                       Contact agent
                     </button>
@@ -556,7 +548,7 @@ const customMarkerIcon = new L.Icon({
               )}
               <div className="md:hidden fixed bottom-4 z-50 ">
                 <ScrollLink to="contactSection" smooth={true} duration={500}>
-                  <button className="flex items-center gap-2 px-4 bg-custom-red text-lg text-white rounded-md p-2">
+                  <button className="flex items-center gap-2 px-4 bg-custom-black text-lg text-white rounded-md p-2">
                     <IoCallOutline />
                     Contact
                   </button>

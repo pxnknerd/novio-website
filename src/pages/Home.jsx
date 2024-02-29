@@ -8,64 +8,33 @@ import {
 } from "firebase/firestore";
 import { useEffect, useState, useRef } from "react";
 import { db } from "../firebase";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ListingItem from "../components/ListingItem";
 import { GrPrevious, GrNext } from "react-icons/gr";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { FaSearch} from "react-icons/fa";
-import MapboxComponent from "../components/MapboxComponent";
 
 
 
 
 
 export default function Home() {
-  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
     const sliderRef = useRef(null);
     const sliderRefSm = useRef(null);
     const sliderRefMd = useRef(null);
     const sliderRefLg = useRef(null);
-const [address, setAddress] = useState("");
 
   const navigateToResults = (filterType) => {
     // Use the `navigate` function to go to the Results page
     // Pass the filter type as a query parameter
     navigate("/results", { state: { filterType } });
   };
-  const [offerListings, setOffersListings] = useState(null);
 
 
-  useEffect(() => {
-    async function fetchListings() {
-      try {
-        //get reference
-        const listingsRef = collection(db, "listings");
-        const q = query(
-          listingsRef,
-          where("offer", "==", true),
-          orderBy("timestamp", "desc"),
-          limit(6)
-        );
-        const querySnap = await getDocs(q);
-        const listings = [];
-        querySnap.forEach((doc) => {
-          return listings.push({
-            id: doc.id,
-            data: doc.data(),
-          });
-        });
-        setOffersListings(listings);
-        console.log(listings);
-      } catch (error) {
-        console.log(error);
-      }
-    }
-    fetchListings();
-  }, []);
 
   // places for rent
   const [rentListings, setRentListings] = useState(null);
@@ -126,7 +95,7 @@ const [address, setAddress] = useState("");
     }
     fetchListings();
   }, []);
-  // places for sale
+  // all listings
   const [Listings, setListings] = useState(null);
   useEffect(() => {
     async function fetchListings() {
@@ -136,7 +105,7 @@ const [address, setAddress] = useState("");
         const q = query(
           listingsRef,
           orderBy("timestamp", "desc"),
-          limit(4)
+          limit(10)
         );
         const querySnap = await getDocs(q);
         const listings = [];
@@ -191,9 +160,9 @@ const [address, setAddress] = useState("");
           <div className="m-6 mb-6">
             <div className="flex  justify-between my-2 text-2xl">
               <div>
-                <p>New offers on Beytty</p>
+                <p>New listings on Beytty.</p>
                 <p className="text-sm text-gray-500 opacity-80">
-                  Check out these new places on discount
+                  Check out the new available listings{" "}
                 </p>
               </div>
               <div className="flex space-x-4 justify-end">
@@ -231,9 +200,9 @@ const [address, setAddress] = useState("");
           <div className="m-6 mb-6">
             <div className="flex justify-between my-4 text-2xl">
               <div>
-                <p>New offers on Beytty</p>
+                <p>New listings on Beytty.</p>
                 <p className="text-sm text-gray-500 opacity-80">
-                  Check out these new places on discount
+                  Check out the new available listings{" "}
                 </p>
               </div>{" "}
               <div className="flex space-x-4 justify-end">
@@ -270,9 +239,9 @@ const [address, setAddress] = useState("");
           <div className="m-6 mb-6">
             <div className="flex justify-between my-4 text-2xl">
               <div>
-                <p>New offers on Beytty</p>
+                <p>New listings on Beytty.</p>
                 <p className="text-sm text-gray-500 opacity-80">
-                  Check out these new places on discount
+                  Check out the new available listings
                 </p>
               </div>{" "}
               <div className="flex space-x-4 justify-end">
@@ -304,14 +273,14 @@ const [address, setAddress] = useState("");
           </div>
         )}{" "}
       </div>
-      <div className="block sm:hidden w-full md:hidden ">
+      <div className="block sm:hidden w-full">
         {Listings && Listings.length > 0 && (
           <div className="m-6 mb-8">
             <div className="flex px-2 justify-between my-2 text-xl">
               <div>
-                <p>New offers on Beytty</p>
+                <p>New offers on Beytty.</p>
                 <p className="text-sm text-gray-500 opacity-80">
-                  Check out the new discounts
+                  Check out the new available listings
                 </p>
               </div>{" "}
               <div className="flex mt-2 space-x-4 justify-end">
@@ -325,11 +294,11 @@ const [address, setAddress] = useState("");
                 />
               </div>
             </div>
-            <div className="">
+            <div className="max-w-6xl">
               <Slider
                 ref={sliderRef} // Attach the ref to the Slider component
                 infinite={true}
-                dots={true}
+                dots={false}
                 speed={500}
                 slidesToShow={1}
                 slidesToScroll={1}
@@ -361,7 +330,7 @@ const [address, setAddress] = useState("");
                 src={process.env.PUBLIC_URL + "/RentCard.png"}
                 alt=""
               />
-              <h1 className="text-2xl mb-8 font-semibold">Rent a Home</h1>
+              <h1 className="text-2xl mb-8 font-semibold">Rent a Home.</h1>
               <p className="text-center">
                 We're making it easy for you online from finding your dream
                 rental to applying for rent hassle-free.
@@ -384,7 +353,7 @@ const [address, setAddress] = useState("");
                 src={process.env.PUBLIC_URL + "/BuyCard.png"}
                 alt=""
               />
-              <h1 className="text-2xl mb-8 font-semibold">Buy a Home</h1>
+              <h1 className="text-2xl mb-8 font-semibold">Buy a Home.</h1>
               <p className="text-center">
                 Discover your perfect space through an extensive list of unique
                 listings you won't find elsewhere
@@ -405,7 +374,7 @@ const [address, setAddress] = useState("");
                 src={process.env.PUBLIC_URL + "/SellCard.png"}
                 alt=""
               />
-              <h1 className="text-2xl mb-8 font-semibold">Sell a Home</h1>
+              <h1 className="text-2xl mb-8 font-semibold">Sell a Home.</h1>
               <p className="text-center">
                 No matter what approach you choose to sell or rent your place,
                 we're here to help you achieve a successful sale.
@@ -461,7 +430,6 @@ const [address, setAddress] = useState("");
           </div>
         )}
       </div>
-
     </div>
   );
 }

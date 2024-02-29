@@ -80,14 +80,14 @@ export default function Contact({ userRef, listing }) {
             {currentStep === "initial" && (
               <div className="flex flex-col space-y-4">
                 <button
-                  className="bg-custom-red text-white rounded-md py-3 md:text-xl"
+                  className="bg-custom-black text-white rounded-md py-3 md:text-xl"
                   type="button"
                   onClick={handleCallAgent}
                 >
                   {callButtonText}
                 </button>
                 <button
-                  className="block bg-white border-2 border-red-600 text-red-600 rounded-md py-3 md:text-xl active:border-red-800 active:text-red-800"
+                  className="block bg-white border-2 border-black text-black rounded-md py-3 md:text-xl active:border-black active:text-black"
                   type="button"
                   onClick={handleShowMessageInput}
                 >
@@ -122,7 +122,7 @@ export default function Contact({ userRef, listing }) {
                   ></textarea>
                 </div>
                 <button
-                  className="block w-full bg-custom-red border-2 text-white rounded-md py-3 md:text-xl"
+                  className="block w-full bg-custom-black border-2 text-white rounded-md py-3 md:text-xl"
                   type="button"
                   onClick={handleSendEmail}
                 >

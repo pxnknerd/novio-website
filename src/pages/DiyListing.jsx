@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import Spinner from "../components/Spinner";
 import { toast } from "react-toastify";
 import {
@@ -9,16 +9,9 @@ import {
 } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 import { v4 as uuidv4 } from "uuid";
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  serverTimestamp,
-  updateDoc,
-} from "firebase/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import AgentGuard from "../components/AgentGuard";
 import { GrFormNext } from "react-icons/gr";
 import { GrFormPrevious } from "react-icons/gr";
@@ -27,22 +20,23 @@ import { FilePond, registerPlugin } from "react-filepond";
 import "filepond/dist/filepond.min.css";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css";
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
+import { IoCheckmarkDoneCircle } from "react-icons/io5";
+import { IoIosArrowBack } from "react-icons/io";
+
+
 
 registerPlugin(FilePondPluginImagePreview);
 
-
-
-export default function CreateListing() {
+export default function DiyListing() {
   console.log("CreateListingPopUp Rendered");
   const navigate = useNavigate();
-  const mapRef = useRef(null);
-  const [listing, setListing] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const auth = getAuth();
-  const [mapCenter, setMapCenter] = useState([33.5731, -7.5898]); // Casablanca coordinates
+  const [mapCenter, setMapCenter] = useState([33.5731, -7.5898]);
   const [markerPosition, setMarkerPosition] = useState([33.5731, -7.5898]);
+  const mapRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     type: "rent",
@@ -78,50 +72,25 @@ export default function CreateListing() {
     discountedPrice,
   } = formData;
 
-     const [viewport, setViewport] = useState({
-       width: "100%",
-       height: "100%",
-       latitude: 31.7917, // Latitude for the center of Morocco
-       longitude: -7.0926, // Longitude for the center of Morocco
-       zoom: 6,
-     });
+  
 
-     const handleMapClick = (event) => {
-       const { lng, lat } = event.lngLat;
-       setFormData((prevFormData) => ({
-         ...prevFormData,
-         latitude: lat,
-         longitude: lng,
-       }));
-       console.log("Latitude:", lat, "Longitude:", lng);
-     };
+  const [viewport, setViewport] = useState({
+    width: "100%",
+    height: "100%",
+    latitude: 31.7917, // Latitude for the center of Morocco
+    longitude: -7.0926, // Longitude for the center of Morocco
+    zoom: 6,
+  });
 
-
-    const params = useParams();
-
-    useEffect(() => {
-      if (listing && listing.userRef !== auth.currentUser.uid) {
-        toast.error("You can't edit this listing");
-        navigate("/");
-      }
-    }, [auth.currentUser.uid, listing, navigate]);
-
-    useEffect(() => {
-      setLoading(true);
-      async function fetchListing() {
-        const docRef = doc(db, "listings", params.listingId);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setListing(docSnap.data());
-          setFormData({ ...docSnap.data() });
-          setLoading(false);
-        } else {
-          navigate("/");
-          toast.error("Listing does not exist");
-        }
-      }
-      fetchListing();
-    }, [navigate, params.listingId]);
+  const handleMapClick = (event) => {
+    const { lng, lat } = event.lngLat;
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      latitude: lat,
+      longitude: lng,
+    }));
+    console.log("Latitude:", lat, "Longitude:", lng);
+  };
 
   function onChange(e) {
     let boolean = null;
@@ -131,6 +100,7 @@ export default function CreateListing() {
     if (e.target.value === "false") {
       boolean = false;
     }
+
     if (!e.target.files) {
       setFormData((prevState) => ({
         ...prevState,
@@ -177,15 +147,8 @@ export default function CreateListing() {
       "bedrooms",
       "bathrooms",
       "description",
+      "images",
     ];
-
-    // Update the lastEdited timestamp
-    const lastEditedTimestamp = serverTimestamp();
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      lastEdited: lastEditedTimestamp,
-    }));
-    
 
     for (const field of requiredFields) {
       if (!formData[field]) {
@@ -196,11 +159,6 @@ export default function CreateListing() {
       }
     }
     setLoading(true);
-    if (+discountedPrice >= +regularPrice) {
-      toast.error("Discounted price needs to be less than regular price");
-      setLoading(false); // Set loading state to false here
-      return;
-    }
 
     if (images.length > 10) {
       setLoading(false);
@@ -257,21 +215,15 @@ export default function CreateListing() {
     const formDataCopy = {
       ...formData,
       imgUrls,
-      lastEdited: null,
+      timestamp: serverTimestamp(),
       userRef: auth.currentUser.uid,
     };
 
     delete formDataCopy.images;
     !formDataCopy.offer && delete formDataCopy.discountedPrice;
-
-    const docRef = doc(db, "listings", params.listingId);
-    await updateDoc(docRef, {
-      ...formDataCopy,
-      lastEdited: lastEditedTimestamp, // Include the lastEdited timestamp in the update
-    });
+    const docRef = await addDoc(collection(db, "diylistings"), formDataCopy);
     setLoading(false);
-    toast.success("Listing Edited");
-    navigate(`/results/${docRef.id}`);
+    toast.success("Listing created");
   }
 
   if (loading) {
@@ -389,7 +341,13 @@ export default function CreateListing() {
   const renderStep2 = () => {
     return (
       <div>
-        <h1 className="text-3xl mb-12">Info about your listing.</h1>
+        <h1 className="flex items-center gap-2 text-3xl mb-12">
+          <IoIosArrowBack
+            className="cursor-pointer hover:opacity-70"
+            onClick={prevStep}
+          />
+          Info about your listing.
+        </h1>
         <p className="text-gray-500 mb-2 ">Do you want to sell or rent ?</p>
         <div className="flex">
           <button
@@ -400,7 +358,7 @@ export default function CreateListing() {
             className={`mr-3 px-7 py-3 font-medium text-sm uppercase  rounded transition duration-150 ease-in-out w-full ${
               type === "rent"
                 ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
+                : "bg-black text-white"
             }`}
           >
             sell
@@ -413,7 +371,7 @@ export default function CreateListing() {
             className={`mr-3 px-7 py-3 font-medium text-sm uppercase  rounded transition duration-150 ease-in-out w-full ${
               type === "sale"
                 ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
+                : "bg-black text-white"
             }`}
           >
             rent
@@ -511,7 +469,7 @@ export default function CreateListing() {
             className={`mr-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
               !parking
                 ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
+                : "bg-black text-white"
             }`}
           >
             Yes
@@ -524,7 +482,7 @@ export default function CreateListing() {
             className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
               parking
                 ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
+                : "bg-black text-white"
             }`}
           >
             no
@@ -540,7 +498,7 @@ export default function CreateListing() {
             className={`mr-3 px-7 py-3 rounded font-medium text-sm uppercase  transition duration-150 ease-in-out w-full ${
               !furnished
                 ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
+                : "bg-black text-white"
             }`}
           >
             yes
@@ -553,7 +511,7 @@ export default function CreateListing() {
             className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
               furnished
                 ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
+                : "bg-black text-white"
             }`}
           >
             no
@@ -561,13 +519,7 @@ export default function CreateListing() {
         </div>
         <div className="flex space-x-6 mt-12 justify-start mb-6">
           <button
-            className="mb-6 px-3 py-2 w-1/2 bg-gray-200 border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-            onClick={prevStep}
-          >
-            <GrFormPrevious className="inline" /> Previous
-          </button>
-          <button
-            className="mb-6 px-3 py-2 w-1/2 bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+            className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
             onClick={nextStep}
           >
             Next
@@ -577,57 +529,65 @@ export default function CreateListing() {
       </div>
     );
   };
-   const renderStep3 = () => {
-     return (
-       <div>
-         <h1 className="text-3xl mb-12"> Pricing details for your listing.</h1>
-         <div className="flex items-center mb-6">
-           <div className="">
-             <p className="text-gray-500 mb-2 ">Set your desired price</p>
-             <div className="flex w-full justify-center items-center space-x-6">
-               <input
-                 type="number"
-                 id="regularPrice"
-                 value={regularPrice}
-                 onChange={onChange}
-                 min="50"
-                 max="400000000"
-                 required
-                 className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
-               />
-               {type === "rent" && (
-                 <div className="">
-                   <p className="text-md w-full whitespace-nowrap">
-                     DH / Month
-                   </p>
-                 </div>
-               )}
-             </div>
-           </div>
-         </div>
 
-         <div className="flex space-x-6 mt-12 justify-start mb-6">
-           <button
-             className="mb-6 px-3 py-2 w-1/2 bg-gray-200 border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-             onClick={prevStep}
-           >
-             <GrFormPrevious className="inline" /> Previous
-           </button>
-           <button
-             className="mb-6 px-3 py-2 w-1/2 bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-             onClick={nextStep}
-           >
-             Next
-             <GrFormNext className="inline" />
-           </button>
-         </div>
-       </div>
-     );
-   };
+  const renderStep3 = () => {
+    return (
+      <div>
+        <h1 className="flex items-center gap-2 text-3xl mb-12">
+          {" "}
+          <IoIosArrowBack
+            className="cursor-pointer hover:opacity-70"
+            onClick={prevStep}
+          />{" "}
+          Pricing details for your listing.
+        </h1>
+        <div className="flex items-center mb-6">
+          <div className="">
+            <p className="text-gray-500 mb-2 ">Set your desired price</p>
+            <div className="flex w-full justify-center items-center space-x-6">
+              <input
+                type="number"
+                id="regularPrice"
+                value={regularPrice}
+                onChange={onChange}
+                min="50"
+                max="400000000"
+                required
+                className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+              />
+              {type === "rent" && (
+                <div className="">
+                  <p className="text-md w-full whitespace-nowrap">DH / Month</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex space-x-6 mt-12 justify-start mb-6">
+
+          <button
+            className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+            onClick={nextStep}
+          >
+            Next
+            <GrFormNext className="inline" />
+          </button>
+        </div>
+      </div>
+    );
+  };
   const renderStep4 = () => {
     return (
       <div>
-        <h1 className="text-3xl mb-12">Describe your property.</h1>
+        <h1 className="flex items-center gap-2 text-3xl mb-12">
+          {" "}
+          <IoIosArrowBack
+            className="cursor-pointer hover:opacity-70"
+            onClick={prevStep}
+          />{" "}
+          Describe your property.
+        </h1>
         <p className="text-gray-500 mb-2 ">Share details about your property</p>
         <textarea
           type="text"
@@ -640,13 +600,7 @@ export default function CreateListing() {
         />
         <div className="flex space-x-6 mt-12 justify-start mb-6">
           <button
-            className="mb-6 px-3 py-2 w-1/2 bg-gray-200 border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-            onClick={prevStep}
-          >
-            <GrFormPrevious className="inline" /> Previous
-          </button>
-          <button
-            className="mb-6 px-3 py-2 w-1/2 bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+            className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
             onClick={nextStep}
           >
             Next
@@ -656,88 +610,109 @@ export default function CreateListing() {
       </div>
     );
   };
-const renderStep5 = () => {
-  const handleFileChange = async (files) => {
-    const validFiles = [];
+  const renderStep5 = () => {
+    const handleFileChange = async (files) => {
+      const validFiles = [];
 
-    for (const file of files) {
-      const image = new Image();
-      image.src = URL.createObjectURL(file.file);
+      for (const file of files) {
+        const image = new Image();
+        image.src = URL.createObjectURL(file.file);
 
-      await new Promise((resolve) => {
-        image.onload = () => {
-          const aspectRatio = image.width / image.height;
-          const tolerance = 0.1; // Adjust the tolerance level as needed
+        await new Promise((resolve) => {
+          image.onload = () => {
+            const aspectRatio = image.width / image.height;
+            const tolerance = 0.1; // Adjust the tolerance level as needed
 
-          if (Math.abs(aspectRatio - 16 / 9) <= tolerance) {
-            validFiles.push(file.file);
-          }
+            if (Math.abs(aspectRatio - 16 / 9) <= tolerance) {
+              validFiles.push(file.file);
+            }
 
-          resolve();
-        };
-      });
-    }
+            resolve();
+          };
+        });
+      }
 
-    if (validFiles.length < files.length) {
-      toast.error("Images should have an aspect ratio close to 16:9.");
-    }
+      if (validFiles.length < files.length) {
+        toast.error("Images should have an aspect ratio close to 16:9.");
+      }
 
-    setImages(validFiles);
-  };
+      setImages(validFiles);
+    };
 
-  // Custom options for FilePond
-  const filePondOptions = {
-    allowMultiple: true,
-    acceptedFileTypes: ["image/*"],
-    maxFiles: 6,
-    imagePreviewHeight: 100, // Set your desired height for each image preview
-    imageCropAspectRatio: "16:9", // Crop images to a 16:9 aspect ratio
-  };
+    // Custom options for FilePond
+    const filePondOptions = {
+      allowMultiple: true,
+      acceptedFileTypes: ["image/*"],
+      maxFiles: 6,
+      imagePreviewHeight: 100, // Set your desired height for each image preview
+      imageCropAspectRatio: "16:9", // Crop images to a 16:9 aspect ratio
+    };
 
-  return (
-    <div>
-      <h1 className="text-3xl mb-6">Upload images of your place.</h1>
-      <div className="mb-6">
-        <p className="text-lg">Images</p>
-        <p className="text-gray-600">
-          The first image will be the cover (max 6)
-        </p>
-        <FilePond
-          files={images}
-          onupdatefiles={handleFileChange}
-          {...filePondOptions}
-        />
-      </div>
-      <button
-        type="submit"
-        className="mb-6 w-full px-7 py-3 bg-custom-red text-white font-medium text-sm uppercase rounded shadow-md hover:opacity-70 hover:shadow-lg focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-      >
-        Edit Listing
-      </button>
-      <button
-        className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-        onClick={prevStep}
-      >
-        <GrFormPrevious className="inline" /> Previous
-      </button>
-    </div>
-  );
-};
-
-  return (
-    <AgentGuard>
-      <main>
-        <div className="flex justify-center w-full mx-auto">
-          <form
-            onSubmit={onSubmit}
-            className="max-w-sm px-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {renderStepIndicator()}
-            {renderStepContent()}
-          </form>
+    return (
+      <div>
+        <h1 className=" flex items-center gap-2 text-3xl mb-4">
+          {" "}
+          <IoIosArrowBack
+            className="cursor-pointer hover:opacity-70"
+            onClick={prevStep}
+          />{" "}
+          Upload images of your place.
+        </h1>
+        <div className="mb-6">
+          <p className="text-gray-600">
+            The first image will be the cover (max 6)
+          </p>
+          <FilePond
+            files={images}
+            onupdatefiles={handleFileChange}
+            {...filePondOptions}
+          />
         </div>
-      </main>
-    </AgentGuard>
+        <button
+          type="submit"
+          className="mb-6 w-full px-7 py-3 bg-custom-red text-white font-medium text-sm uppercase rounded shadow-md hover:opacity-70 hover:shadow-lg focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+        >
+          Create Listing
+        </button>
+
+      </div>
+    );
+  };
+
+  return (
+    <main>
+      <div className="mt-8 flex justify-center gap-8 px-4 max-w-6xl mx-auto">
+        <div className="bg-white text-black border-4 shadow-md p-8 rounded-md w-1/2 h-[900px]">
+          <p className="text-4xl mb-8 font-semibold underline-red">
+            List by yourself.
+          </p>
+          <div className="text-xl font-semibold ">
+            <p>Step 1 </p>
+            <p className="mb-4 font-light">Location.</p>
+            <p>Step 2 </p>
+            <p className="mb-4 font-light">Info.</p>
+            <p>Step 3 </p>
+            <p className="mb-4 font-light"> Pricing.</p>
+            <p>Step 4 </p>
+            <p className="mb-4 font-light"> Description.</p>
+            <p>Step 5 </p>
+            <p className="mb-4 font-light"> Images. </p>
+            <p>Step 6 </p>
+            <p className="mb-4 font-light">Wait for our validation.</p>
+            <p>Step 7 </p>
+            <p className="mb-4 font-light"> Listed !</p>
+          </div>
+        </div>
+        <form
+          onSubmit={onSubmit}
+          className="w-1/2 "
+          onClick={(e) => e.stopPropagation()}
+        >
+          {renderStepIndicator()}
+          {renderStepContent()}
+        </form>
+      </div>
+    </main>
   );
 }
+

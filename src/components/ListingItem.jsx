@@ -26,13 +26,16 @@ export default function ListingItem({ listing, id, onEdit, onDelete}) {
                 } rounded-full mr-2`}
               ></div>
               <p className="flex text-black text-sm opacity-80 capitalize text-center font-light">
-                For {listing.type === "rent" ? "Rent" : "Sale"}
+                {listing.listingType === "apartment"
+                  ? "Apt"
+                  : listing.listingType}{" "}
+                For {listing.listingType === "rent" ? "Rent" : "Sale"}
               </p>
             </div>
 
             <p className="text-[#1d1d1d] font-semibold text-lg mt-1">
               {listing.offer
-                ? `${listing.discountedPrice
+                ? `${listing.regularPrice
                     .toString()
                     .replace(/\B(?=(\d{3})+(?!\d))/g, ",")} DH`
                 : `${listing.regularPrice

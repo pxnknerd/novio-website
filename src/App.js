@@ -23,6 +23,9 @@ import Help from "./pages/Help";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import AgentVerificationPage from "./pages/AgentVerificationPage";
 import SecondHeader from "./components/SecondHeader";
+import Sell from "./pages/Sell";
+import DiyListing from "./pages/DiyListing";
+
 
 function App() {
 
@@ -40,6 +43,7 @@ function App() {
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/agent-sign-up" element={<AgentSignUp />} />
           <Route path="/agent-sign-in" element={<AgentSignIn />} />
+          <Route path="/diylisting" element={<DiyListing />} />
           <Route path="/help" element={<Help />} />
           <Route
             path="/email-verification"
@@ -51,6 +55,7 @@ function App() {
           />
           <Route path="/terms-and-services" element={<TermsAndServices />} />
           <Route path="/offers" element={<Offers />} />
+          <Route path="/sell" element={<Sell />} />
           <Route path="/results" element={<Results />} />
           <Route path="/listingdetails/:listingId" element={<Listing />} />
           <Route path="/create-listing" element={<PrivateRoute />}>
@@ -106,7 +111,7 @@ function FooterWithCondition() {
 
   useEffect(() => {
     const currentPath = window.location.pathname;
-    const shouldHideFooter = ["/sign-in", "/forgot-password", "/sign-up", "/agent-sign-up", "/agent-sign-in", "/create-listing", "/results", "/edit-listing"].includes(currentPath);
+    const shouldHideFooter = ["/sign-in", "/forgot-password", "/sign-up",  "/agent-sign-up", "/agent-sign-in", "/create-listing", "/results", "/edit-listing"].includes(currentPath);
     setHideFooter(shouldHideFooter);
   }, [navigate]);
 
