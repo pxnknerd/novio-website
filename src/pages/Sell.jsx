@@ -16,11 +16,15 @@ export default function Sell() {
           property, your choice.
         </h2>
         <ul className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2">
-          <li className="border-2 border-red-500 cursor-pointer hover:shadow-2xl shadow-md px-8 flex flex-col rounded-lg bg-white transition duration-300">
+          <li
+            className="cursor-pointer hover:shadow-2xl shadow-md px-8 flex flex-col rounded-lg bg-white transition duration-300"
+            onClick={() => navigate("/diylisting")}
+          >
             <div>
-            <h1 className="mt-8  text-2xl mb-8 font-semibold">
-              List with Beytty.
-            </h1></div>
+              <h1 className="mt-8  text-2xl mb-8 font-semibold">
+                List with Beytty.
+              </h1>
+            </div>
             <ul className="mb-8">
               <div>
                 <li className="mt-4 font-semibold">Effortless Process</li>{" "}
@@ -41,7 +45,10 @@ export default function Sell() {
               List with Beytty
             </button>
           </li>
-          <li className="border-2 border-red-500 cursor-pointer hover:shadow-2xl shadow-md px-8  flex flex-col rounded-lg bg-white transition duration-300">
+          <li
+            className="cursor-pointer hover:shadow-2xl shadow-md px-8  flex flex-col rounded-lg bg-white transition duration-300"
+            onClick={() => navigate("/agentfinder")}
+          >
             <h1 className="mt-8 text-2xl mb-8 font-semibold">
               List with Agent.
             </h1>
@@ -56,15 +63,15 @@ export default function Sell() {
 
             <button
               type="button"
-              className="mt-auto  mb-8 border-2 border-red-500 rounded text-red-500 hover:bg-red-600 hover:text-white px-4 py-2 transition duration-300"
+              className="mt-auto mb-8 border-2 border-red-500 rounded text-red-500 hover:bg-red-600 hover:text-white px-4 py-2 transition duration-300"
               à
             >
               List with Agent
             </button>
           </li>
           <li
-            className="border-2 border-red-500 cursor-pointer hover:shadow-2xl shadow-md px-8 flex flex-col rounded-lg bg-white transition duration-300"
-            onClick={() => navigate("/diylisting")}
+            className="cursor-pointer hover:shadow-2xl shadow-md px-8 flex flex-col rounded-lg bg-white transition duration-300"
+            onClick={() => navigate("/create-listing")}
           >
             <h1 className="mt-8 text-2xl mb-8 font-semibold">
               List It Yourself.

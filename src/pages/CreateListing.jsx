@@ -1,35 +1,32 @@
 import { useState, useRef } from "react";
 import Spinner from "../components/Spinner";
 import { toast } from "react-toastify";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import {getAuth} from "firebase/auth"
-import {v4 as uuidv4} from "uuid";
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
+import { getAuth } from "firebase/auth";
+import { v4 as uuidv4 } from "uuid";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { useNavigate } from "react-router-dom";
-import AgentGuard from '../components/AgentGuard';
-import { GrFormNext } from "react-icons/gr";
-import { GrFormPrevious } from "react-icons/gr";
 import ReactMapGL, { Marker, NavigationControl } from "react-map-gl";
 import { FilePond, registerPlugin } from "react-filepond";
 import "filepond/dist/filepond.min.css";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css";
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
+import { IoIosArrowBack } from "react-icons/io";
 
 registerPlugin(FilePondPluginImagePreview);
 
-
-
-export default function CreateListing() {
+export default function DiyListing() {
   console.log("CreateListingPopUp Rendered");
-  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [images, setImages] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState([]);
   const auth = getAuth();
-  const [mapCenter, setMapCenter] = useState([33.5731, -7.5898]);
-  const [markerPosition, setMarkerPosition] = useState([33.5731, -7.5898]);
-  const mapRef = useRef(null);
+  const [finalStep, setFinalStep] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     type: "rent",
@@ -48,6 +45,7 @@ export default function CreateListing() {
     regularPrice: 0,
     discountedPrice: 0,
     images: {},
+    status: "pending",
   });
 
   const {
@@ -65,177 +63,176 @@ export default function CreateListing() {
     discountedPrice,
   } = formData;
 
+  const [viewport, setViewport] = useState({
+    width: "100%",
+    height: "100%",
+    latitude: 31.7917, // Latitude for the center of Morocco
+    longitude: -7.0926, // Longitude for the center of Morocco
+    zoom: 6,
+  });
 
+  const handleMapClick = (event) => {
+    const { lng, lat } = event.lngLat;
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      latitude: lat,
+      longitude: lng,
+    }));
+    console.log("Latitude:", lat, "Longitude:", lng);
+  };
 
-   const [viewport, setViewport] = useState({
-     width: "100%",
-     height: "100%",
-     latitude: 31.7917, // Latitude for the center of Morocco
-     longitude: -7.0926, // Longitude for the center of Morocco
-     zoom: 6,
-   });
+  function onChange(e) {
+    let boolean = null;
+    if (e.target.value === "true") {
+      boolean = true;
+    }
+    if (e.target.value === "false") {
+      boolean = false;
+    }
 
-   const handleMapClick = (event) => {
-     const { lng, lat } = event.lngLat;
-     setFormData((prevFormData) => ({
-       ...prevFormData,
-       latitude: lat,
-       longitude: lng,
-     }));
-     console.log("Latitude:", lat, "Longitude:", lng);
-   };
+    if (!e.target.files) {
+      setFormData((prevState) => ({
+        ...prevState,
+        [e.target.id]: boolean ?? e.target.value,
+      }));
+    }
 
+    // Handle 'bedrooms' input
+    if (e.target.id === "bedrooms") {
+      const bedroomsValue = isNaN(e.target.value)
+        ? 0
+        : parseInt(e.target.value);
+      setFormData((prevState) => ({
+        ...prevState,
+        bedrooms: bedroomsValue,
+      }));
+    }
 
-   function onChange(e) {
-     let boolean = null;
-     if (e.target.value === "true") {
-       boolean = true;
-     }
-     if (e.target.value === "false") {
-       boolean = false;
-     }
+    // Handle 'bathrooms' input
+    if (e.target.id === "bathrooms") {
+      const bathroomsValue = isNaN(e.target.value)
+        ? 0
+        : parseInt(e.target.value);
+      setFormData((prevState) => ({
+        ...prevState,
+        bathrooms: bathroomsValue,
+      }));
+    }
 
-     if (!e.target.files) {
-       setFormData((prevState) => ({
-         ...prevState,
-         [e.target.id]: boolean ?? e.target.value,
-       }));
-     }
+    if (e.target.id === "size") {
+      const sizeValue = isNaN(e.target.value) ? 0 : parseFloat(e.target.value);
+      setFormData((prevState) => ({
+        ...prevState,
+        size: sizeValue,
+      }));
+      return;
+    }
 
-     if (e.target.id === "size" && isNaN(e.target.value)) {
-       return; // Ignore non-numeric input
-     }
+    // Handle 'yearBuilt' selection from a dropdown
+    if (e.target.id === "yearBuilt") {
+      setFormData((prevState) => ({
+        ...prevState,
+        yearBuilt: parseInt(e.target.value),
+      }));
+    }
+    // Handle 'regularPrice' input
+    if (e.target.id === "regularPrice") {
+      setFormData((prevState) => ({
+        ...prevState,
+        regularPrice: parseFloat(e.target.value), // Convert to number
+      }));
+    }
 
-     // Handle 'yearBuilt' selection from a dropdown
-     if (e.target.id === "yearBuilt") {
-       setFormData((prevState) => ({
-         ...prevState,
-         yearBuilt: parseInt(e.target.value),
-       }));
-     }
-     // Handle 'regularPrice' input
-     if (e.target.id === "regularPrice") {
-       setFormData((prevState) => ({
-         ...prevState,
-         regularPrice: parseFloat(e.target.value), // Convert to number
-       }));
-     }
+    // Handle 'listingType' selection from a dropdown
+    if (e.target.id === "listingType") {
+      setFormData((prevState) => ({
+        ...prevState,
+        listingType: e.target.value,
+      }));
+    }
+  }
+  async function onSubmit(e) {
+    e.preventDefault();
+    // Add validation for each form field
 
-     // Handle 'listingType' selection from a dropdown
-     if (e.target.id === "listingType") {
-       setFormData((prevState) => ({
-         ...prevState,
-         listingType: e.target.value,
-       }));
-     }
-   }
-   async function onSubmit(e) {
-     e.preventDefault();
-     // Add validation for each form field
-     const requiredFields = [
-       "address",
-       "type",
-       "listingType",
-       "yearBuilt",
-       "size",
-       "bedrooms",
-       "bathrooms",
-       "description",
-       "images",
-     ];
+    if (images.length > 10) {
+      setLoading(false);
+      toast.error("maximum 10 images are allowed");
+      return;
+    }
 
-     for (const field of requiredFields) {
-       if (!formData[field]) {
-         toast.error(
-           `Please fill in the ${field
-             .replace(/([A-Z])/g, " $1")
-             .toLowerCase()}`
-         );
-         return;
-       }
-     }
-     setLoading(true);
+    async function storeImage(image) {
+      return new Promise((resolve, reject) => {
+        const storage = getStorage();
+        const filename = `${auth.currentUser.uid}-${image.name}-${uuidv4()}`;
+        const storageRef = ref(storage, filename);
+        const uploadTask = uploadBytesResumable(storageRef, image);
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            // Observe state change events such as progress, pause, and resume
+            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log("Upload is " + progress + "% done");
+            switch (snapshot.state) {
+              case "paused":
+                console.log("Upload is paused");
+                break;
+              case "running":
+                console.log("Upload is running");
+                break;
+            }
+          },
+          (error) => {
+            // Handle unsuccessful uploads
+            reject(error);
+          },
+          () => {
+            // Handle successful uploads on complete
+            // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+              resolve(downloadURL);
+            });
+          }
+        );
+      });
+    }
 
-     if (images.length > 10) {
-       setLoading(false);
-       toast.error("maximum 10 images are allowed");
-       return;
-     }
+    const imgUrls = await Promise.all(
+      [...images].map((image) => storeImage(image))
+    ).catch((error) => {
+      setLoading(false);
+      toast.error("Images not uploaded");
+      return;
+    });
 
-     async function storeImage(image) {
-       return new Promise((resolve, reject) => {
-         const storage = getStorage();
-         const filename = `${auth.currentUser.uid}-${image.name}-${uuidv4()}`;
-         const storageRef = ref(storage, filename);
-         const uploadTask = uploadBytesResumable(storageRef, image);
-         uploadTask.on(
-           "state_changed",
-           (snapshot) => {
-             // Observe state change events such as progress, pause, and resume
-             // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-             const progress =
-               (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-             console.log("Upload is " + progress + "% done");
-             switch (snapshot.state) {
-               case "paused":
-                 console.log("Upload is paused");
-                 break;
-               case "running":
-                 console.log("Upload is running");
-                 break;
-             }
-           },
-           (error) => {
-             // Handle unsuccessful uploads
-             reject(error);
-           },
-           () => {
-             // Handle successful uploads on complete
-             // For instance, get the download URL: https://firebasestorage.googleapis.com/...
-             getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-               resolve(downloadURL);
-             });
-           }
-         );
-       });
-     }
+    const formDataCopy = {
+      ...formData,
+      imgUrls,
+      timestamp: serverTimestamp(),
+      userRef: auth.currentUser.uid,
+      status: "pending",
+    };
 
-     const imgUrls = await Promise.all(
-       [...images].map((image) => storeImage(image))
-     ).catch((error) => {
-       setLoading(false);
-       toast.error("Images not uploaded");
-       return;
-     });
+    delete formDataCopy.images;
+    !formDataCopy.offer && delete formDataCopy.discountedPrice;
+    const docRef = await addDoc(collection(db, "listings"), formDataCopy);
+    setLoading(false);
+    setFinalStep(true);
+  }
 
-     const formDataCopy = {
-       ...formData,
-       imgUrls,
-       timestamp: serverTimestamp(),
-       userRef: auth.currentUser.uid,
-     };
+  if (loading) {
+    return <Spinner />;
+  }
 
-     delete formDataCopy.images;
-     !formDataCopy.offer && delete formDataCopy.discountedPrice;
-     const docRef = await addDoc(collection(db, "listings"), formDataCopy);
-     setLoading(false);
-     toast.success("Listing created");
-     navigate(`/listingdetails/${docRef.id}`);
-   }
-
-   if (loading) {
-     return <Spinner />;
-   }
-
-   const stepTitles = [
-     "Location",
-     "Listing",
-     "Pricing",
-     "Description",
-     "Images",
-   ];
-
-  
+  const stepTitles = [
+    "Location",
+    "Listing",
+    "Pricing",
+    "Description",
+    "Images",
+  ];
 
   const renderStepIndicator = () => {
     return (
@@ -244,8 +241,9 @@ export default function CreateListing() {
           <div
             key={index}
             className={`flex-1 h-2 ${
-              index + 1 < currentStep
-                ? "bg-custom-red" // Highlight the steps before the current step
+              index + 1 < currentStep ||
+              (finalStep && index + 1 === stepTitles.length)
+                ? "bg-custom-red" // Highlight the steps before the current step and the final step
                 : "bg-gray-300"
             }`}
           ></div>
@@ -262,7 +260,23 @@ export default function CreateListing() {
     setCurrentStep(currentStep - 1);
   };
 
+  const renderConfirmationStep = () => {
+    return (
+      <div>
+        <h1 className="text-2xl md:text-3xl  mb-12">Listing Submitted!</h1>
+        <p className="text-gray-500 mb-2">
+          We have received your listing, and our team will review it. Approval
+          may take a few hours.
+        </p>
+        {/* Add any additional content or styling for the confirmation step */}
+      </div>
+    );
+  };
+
   const renderStepContent = () => {
+    if (finalStep) {
+      return renderConfirmationStep();
+    }
     switch (currentStep) {
       case 1:
         return renderStep1();
@@ -279,67 +293,82 @@ export default function CreateListing() {
     }
   };
 
-const renderStep1 = () => {
-  return (
-    <div>
-      <h1 className="text-3xl mb-12">Where is your place located ?</h1>
-      <p className=" text-gray-500 mb-2">
-        Type the exact address of your home.
-      </p>
-      <input
-        type="address"
-        id="address"
-        value={address}
-        onChange={onChange}
-        placeholder=""
-        className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-2 border-gray-300 rounded transition ease-in-out"
-      />
-      <p className=" text-gray-500 mb-2">
-        Click and drop the pin on the map to select the location.
-      </p>
-      <div className="h-[400px] bg-gray-200">
-        <ReactMapGL
-          {...viewport}
-          mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
-          mapStyle="mapbox://styles/mohamedmakdad/clsqz4sct00xn01pf8o9vg38g"
-          onMove={(evt) => setViewport(evt.viewport)}
-          onClick={handleMapClick}
-        >
-          {formData.latitude !== 0 && formData.longitude !== 0 && (
-            <Marker
-              latitude={formData.latitude}
-              longitude={formData.longitude}
-              offsetTop={-20}
-              offsetLeft={-10}
-              anchor="bottom" // Set the anchor point to the bottom
-            >
-              <img
-                src="/MyPin.svg"
-                alt="Pin"
-                style={{ width: "40px", height: "40px" }}
-              />
-            </Marker>
-          )}
-          <div style={{ position: "absolute", right: 10, top: 10 }}>
-            <NavigationControl />
-          </div>
-        </ReactMapGL>{" "}
-      </div>
-
-      <button
-        className="mb-6 px-3 py-2 mt-6 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-        onClick={nextStep}
-      >
-        Next
-        <GrFormNext className="inline" />
-      </button>
-    </div>
-  );
- };
-const renderStep2 = () => {
+  const renderStep1 = () => {
     return (
       <div>
-        <h1 className="text-3xl mb-12">Info about your listing.</h1>
+        <h1 className="text-2xl md:text-3xl mb-12">
+          Where is your place located ?
+        </h1>
+        <p className=" text-gray-500 mb-2">
+          Type the exact address of your home.
+        </p>
+        <input
+          type="address"
+          id="address"
+          value={address}
+          onChange={onChange}
+          placeholder=""
+          className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-2 border-gray-300 rounded transition ease-in-out"
+        />
+        <p className=" text-gray-500 mb-2">
+          Click and drop the pin on the map to select the location.
+        </p>
+        <div className="h-[400px] bg-gray-200">
+          <ReactMapGL
+            {...viewport}
+            mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
+            mapStyle="mapbox://styles/mohamedmakdad/clsqz4sct00xn01pf8o9vg38g"
+            onMove={(evt) => setViewport(evt.viewport)}
+            onClick={handleMapClick}
+          >
+            {formData.latitude !== 0 && formData.longitude !== 0 && (
+              <Marker
+                latitude={formData.latitude}
+                longitude={formData.longitude}
+                offsetTop={-20}
+                offsetLeft={-10}
+                anchor="bottom" // Set the anchor point to the bottom
+              >
+                <img
+                  src="/MyPin.svg"
+                  alt="Pin"
+                  style={{ width: "40px", height: "40px" }}
+                />
+              </Marker>
+            )}
+            <div style={{ position: "absolute", right: 10, top: 10 }}>
+              <NavigationControl />
+            </div>
+          </ReactMapGL>{" "}
+        </div>
+
+        <button
+          className="mb-6 px-3 py-2 mt-6 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+          onClick={nextStep}
+        >
+          Confirm
+        </button>
+      </div>
+    );
+  };
+
+  const renderStep2 = () => {
+    const isLand = listingType === "land";
+    const isOffice = listingType === "office" || listingType === "commercial";
+    const isPlace =
+      listingType === "apartment" ||
+      listingType === "villa" ||
+      listingType === "riad" ||
+      listingType === "farmhouse";
+    return (
+      <div>
+        <h1 className="flex gap-2 text-2xl md:text-3xl  mb-12">
+          <IoIosArrowBack
+            className="my-1 cursor-pointer hover:opacity-70"
+            onClick={prevStep}
+          />
+          Info about your listing.
+        </h1>
         <p className="text-gray-500 mb-2 ">Do you want to sell or rent ?</p>
         <div className="flex">
           <button
@@ -350,7 +379,7 @@ const renderStep2 = () => {
             className={`mr-3 px-7 py-3 font-medium text-sm uppercase  rounded transition duration-150 ease-in-out w-full ${
               type === "rent"
                 ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
+                : "bg-custom-black text-white"
             }`}
           >
             sell
@@ -363,7 +392,7 @@ const renderStep2 = () => {
             className={`mr-3 px-7 py-3 font-medium text-sm uppercase  rounded transition duration-150 ease-in-out w-full ${
               type === "sale"
                 ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
+                : "bg-custom-black text-white"
             }`}
           >
             rent
@@ -378,28 +407,13 @@ const renderStep2 = () => {
         >
           <option value="villa">Villa</option>
           <option value="apartment">Apartment</option>
-          <option value="commercial">Commercial</option>
           <option value="riad">Riad</option>
-          <option value="land">Land</option>
           <option value="farmhouse">Farmhouse</option>
+          <option value="commercial">Commercial</option>
+          <option value="office">Office</option>
+          <option value="land">Land</option>
         </select>
-        <div className="flex space-x-6 mb-6">
-          <div className="flex-1">
-            <p className="mt-8 text-gray-500 mb-2 ">Year built </p>
-            <select
-              id="yearBuilt"
-              value={yearBuilt}
-              onChange={onChange}
-              className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
-            >
-              {/* Populate options for yearBuilt */}
-              {Array.from({ length: 126 }, (_, index) => (
-                <option key={index} value={2025 - index}>
-                  {2025 - index}
-                </option>
-              ))}
-            </select>
-          </div>
+        {isLand && (
           <div className="flex-1">
             <p className="mt-8 text-gray-500 mb-2 ">Size</p>
             <div className="flex w-full justify-center items-center space-x-6">
@@ -419,163 +433,262 @@ const renderStep2 = () => {
               </div>
             </div>
           </div>
-        </div>
+        )}
 
-        <div className="flex space-x-6 mb-6">
-          <div>
-            <p className="text-gray-500 mb-2  ">Beds</p>
-            <input
-              type="number"
-              id="bedrooms"
-              value={bedrooms}
-              onChange={onChange}
-              min="1"
-              max="50"
-              required
-              className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
-            />
+        {isOffice && (
+          <div className="">
+            <div className="">
+              <p className="mt-8 text-gray-500 mb-2 ">Size</p>
+              <div className="flex w-full justify-center items-center space-x-6">
+                <div className="relative w-full">
+                  <input
+                    type="number"
+                    id="size"
+                    value={size}
+                    onChange={onChange}
+                    min="0"
+                    required
+                    className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+                  />
+                  <div className="absolute right-4 sm:right-10 top-1/2 transform -translate-y-1/2 text-md whitespace-nowrap">
+                    m²
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="">
+              <p className="mt-8 text-gray-500 mb-3 ">
+                Does your place have a parking spot ?
+              </p>
+              <div className="flex ">
+                <button
+                  type="button"
+                  id="parking"
+                  value={true}
+                  onClick={onChange}
+                  className={`mr-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                    !parking
+                      ? "bg-white text-black border-2 border-gray-200"
+                      : "bg-custom-black text-white"
+                  }`}
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  id="parking"
+                  value={false}
+                  onClick={onChange}
+                  className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                    parking
+                      ? "bg-white text-black border-2 border-gray-200"
+                      : "bg-custom-black text-white"
+                  }`}
+                >
+                  No
+                </button>
+              </div>
+            </div>
           </div>
+        )}
+        {isPlace && (
           <div>
-            <p className="text-gray-500 mb-2  ">Baths</p>
-            <input
-              type="number"
-              id="bathrooms"
-              value={bathrooms}
-              onChange={onChange}
-              min="1"
-              max="50"
-              required
-              className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
-            />
+            <div className="flex space-x-6 mb-6">
+              <div className="flex-1">
+                <p className="mt-8 text-gray-500 mb-2 ">Year built </p>
+                <select
+                  id="yearBuilt"
+                  value={yearBuilt}
+                  onChange={onChange}
+                  className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+                >
+                  {/* Populate options for yearBuilt */}
+                  {Array.from({ length: 126 }, (_, index) => (
+                    <option key={index} value={2025 - index}>
+                      {2025 - index}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-1">
+                <p className="mt-8 text-gray-500 mb-2 ">Size</p>
+                <div className="flex w-full justify-center items-center space-x-6">
+                  <div className="relative w-full">
+                    <input
+                      type="number"
+                      id="size"
+                      value={size}
+                      onChange={onChange}
+                      min="0"
+                      required
+                      className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+                    />
+                    <div className="absolute right-4 sm:right-10 top-1/2 transform -translate-y-1/2 text-md whitespace-nowrap">
+                      m²
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex space-x-6 mb-6">
+              <div>
+                <p className="text-gray-500 mb-2  ">Beds</p>
+                <input
+                  type="number"
+                  id="bedrooms"
+                  value={bedrooms}
+                  onChange={onChange}
+                  min="1"
+                  max="50"
+                  required
+                  className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+                />
+              </div>
+              <div>
+                <p className="text-gray-500 mb-2  ">Baths</p>
+                <input
+                  type="number"
+                  id="bathrooms"
+                  value={bathrooms}
+                  onChange={onChange}
+                  min="1"
+                  max="50"
+                  required
+                  className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+                />
+              </div>
+            </div>
+            <p className="mt-8 text-gray-500 mb-3 ">
+              Does your Home have a parking spot ?
+            </p>
+            <div className="flex">
+              <button
+                type="button"
+                id="parking"
+                value={true}
+                onClick={onChange}
+                className={`mr-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                  !parking
+                    ? "bg-white text-black border-2 border-gray-200"
+                    : "bg-custom-black text-white"
+                }`}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                id="parking"
+                value={false}
+                onClick={onChange}
+                className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                  parking
+                    ? "bg-white text-black border-2 border-gray-200"
+                    : "bg-custom-black text-white"
+                }`}
+              >
+                no
+              </button>
+            </div>
+            <p className="mt-8 text-gray-500 mb-2  ">Is it furnished ?</p>
+            <div className="flex">
+              <button
+                type="button"
+                id="furnished"
+                value={true}
+                onClick={onChange}
+                className={`mr-3 px-7 py-3 rounded font-medium text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                  !furnished
+                    ? "bg-white text-black border-2 border-gray-200"
+                    : "bg-custom-black text-white"
+                }`}
+              >
+                yes
+              </button>
+              <button
+                type="button"
+                id="furnished"
+                value={false}
+                onClick={onChange}
+                className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                  furnished
+                    ? "bg-white text-black border-2 border-gray-200"
+                    : "bg-custom-black text-white"
+                }`}
+              >
+                no
+              </button>
+            </div>
           </div>
-        </div>
-        <p className="mt-8 text-gray-500 mb-3 ">
-          Does your Home have a parking spot ?
-        </p>
-        <div className="flex">
-          <button
-            type="button"
-            id="parking"
-            value={true}
-            onClick={onChange}
-            className={`mr-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
-              !parking
-                ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
-            }`}
-          >
-            Yes
-          </button>
-          <button
-            type="button"
-            id="parking"
-            value={false}
-            onClick={onChange}
-            className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
-              parking
-                ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
-            }`}
-          >
-            no
-          </button>
-        </div>
-        <p className="mt-8 text-gray-500 mb-2  ">Is it furnished ?</p>
-        <div className="flex">
-          <button
-            type="button"
-            id="furnished"
-            value={true}
-            onClick={onChange}
-            className={`mr-3 px-7 py-3 rounded font-medium text-sm uppercase  transition duration-150 ease-in-out w-full ${
-              !furnished
-                ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
-            }`}
-          >
-            yes
-          </button>
-          <button
-            type="button"
-            id="furnished"
-            value={false}
-            onClick={onChange}
-            className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
-              furnished
-                ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
-            }`}
-          >
-            no
-          </button>
-        </div>
+        )}
         <div className="flex space-x-6 mt-12 justify-start mb-6">
           <button
-            className="mb-6 px-3 py-2 w-1/2 bg-gray-200 border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-            onClick={prevStep}
-          >
-            <GrFormPrevious className="inline" /> Previous
-          </button>
-          <button
-            className="mb-6 px-3 py-2 w-1/2 bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+            className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
             onClick={nextStep}
           >
-            Next
-            <GrFormNext className="inline" />
+            Confirm
           </button>
         </div>
       </div>
     );
- };
- const renderStep3 = () => {
-   return (
-     <div>
-       <h1 className="text-3xl mb-12"> Pricing details for your listing.</h1>
-       <div className="flex items-center mb-6">
-         <div className="">
-           <p className="text-gray-500 mb-2 ">Set your desired price</p>
-           <div className="flex w-full justify-center items-center space-x-6">
-             <input
-               type="number"
-               id="regularPrice"
-               value={regularPrice}
-               onChange={onChange}
-               min="50"
-               max="400000000"
-               required
-               className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
-             />
-             {type === "rent" && (
-               <div className="">
-                 <p className="text-md w-full whitespace-nowrap">DH / Month</p>
-               </div>
-             )}
-           </div>
-         </div>
-       </div>
+  };
 
-       <div className="flex space-x-6 mt-12 justify-start mb-6">
-         <button
-           className="mb-6 px-3 py-2 w-1/2 bg-gray-200 border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-           onClick={prevStep}
-         >
-           <GrFormPrevious className="inline" /> Previous
-         </button>
-         <button
-           className="mb-6 px-3 py-2 w-1/2 bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-           onClick={nextStep}
-         >
-           Next
-           <GrFormNext className="inline" />
-         </button>
-       </div>
-     </div>
-   );
- };
+  const renderStep3 = () => {
+    return (
+      <div>
+        <h1 className="flex gap-2 text-2xl md:text-3xl  mb-12">
+          {" "}
+          <IoIosArrowBack
+            className="mt-1 cursor-pointer hover:opacity-70"
+            onClick={prevStep}
+          />{" "}
+          Pricing details for your listing.
+        </h1>
+        <div className="flex items-center mb-6">
+          <div className="">
+            <p className="text-gray-500 mb-2 ">Set your desired price</p>
+            <div className="flex w-full justify-center items-center space-x-6">
+              <input
+                type="number"
+                id="regularPrice"
+                value={regularPrice}
+                onChange={onChange}
+                min="50"
+                max="400000000"
+                required
+                className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+              />
+              {type === "rent" && (
+                <div className="">
+                  <p className="text-md w-full whitespace-nowrap">DH / Month</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex space-x-6 mt-12 justify-start mb-6">
+          <button
+            className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+            onClick={nextStep}
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    );
+  };
   const renderStep4 = () => {
     return (
       <div>
-        <h1 className="text-3xl mb-12">Describe your property.</h1>
+        <h1 className="flex gap-2 text-2xl md:text-3xl mb-12">
+          {" "}
+          <IoIosArrowBack
+            className="mt-1 cursor-pointer hover:opacity-70"
+            onClick={prevStep}
+          />{" "}
+          Describe your property details.
+        </h1>
         <p className="text-gray-500 mb-2 ">Share details about your property</p>
         <textarea
           type="text"
@@ -588,104 +701,123 @@ const renderStep2 = () => {
         />
         <div className="flex space-x-6 mt-12 justify-start mb-6">
           <button
-            className="mb-6 px-3 py-2 w-1/2 bg-gray-200 border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-            onClick={prevStep}
-          >
-            <GrFormPrevious className="inline" /> Previous
-          </button>
-          <button
-            className="mb-6 px-3 py-2 w-1/2 bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+            className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
             onClick={nextStep}
           >
-            Next
-            <GrFormNext className="inline" />
+            Confirm
           </button>
         </div>
       </div>
     );
- };
- const renderStep5 = () => {
-   const handleFileChange = async (files) => {
-     const validFiles = [];
+  };
+  const renderStep5 = () => {
+    const handleFileChange = async (files) => {
+      const validFiles = [];
 
-     for (const file of files) {
-       const image = new Image();
-       image.src = URL.createObjectURL(file.file);
+      for (const file of files) {
+        const image = new Image();
+        image.src = URL.createObjectURL(file.file);
 
-       await new Promise((resolve) => {
-         image.onload = () => {
-           const aspectRatio = image.width / image.height;
-           const tolerance = 0.1; // Adjust the tolerance level as needed
+        await new Promise((resolve) => {
+          image.onload = () => {
+            const aspectRatio = image.width / image.height;
+            const tolerance = 0.1; // Adjust the tolerance level as needed
 
-           if (Math.abs(aspectRatio - 16 / 9) <= tolerance) {
-             validFiles.push(file.file);
-           }
+            if (Math.abs(aspectRatio - 16 / 9) <= tolerance) {
+              validFiles.push(file.file);
+            }
 
-           resolve();
-         };
-       });
-     }
+            resolve();
+          };
+        });
+      }
 
-     if (validFiles.length < files.length) {
-       toast.error("Images should have an aspect ratio close to 16:9.");
-     }
+      if (validFiles.length < files.length) {
+        toast.error("Images should have an aspect ratio close to 16:9.");
+      }
 
-     setImages(validFiles);
-   };
+      setImages(validFiles);
+    };
 
-   // Custom options for FilePond
-   const filePondOptions = {
-     allowMultiple: true,
-     acceptedFileTypes: ["image/*"],
-     maxFiles: 6,
-     imagePreviewHeight: 100, // Set your desired height for each image preview
-     imageCropAspectRatio: "16:9", // Crop images to a 16:9 aspect ratio
-   };
+    // Custom options for FilePond
+    const filePondOptions = {
+      allowMultiple: true,
+      acceptedFileTypes: ["image/*"],
+      maxFiles: 6,
+      imagePreviewHeight: 100, // Set your desired height for each image preview
+      imageCropAspectRatio: "16:9", // Crop images to a 16:9 aspect ratio
+    };
 
-   return (
-     <div>
-       <h1 className="text-3xl mb-6">Upload images of your place.</h1>
-       <div className="mb-6">
-         <p className="text-lg">Images</p>
-         <p className="text-gray-600">
-           The first image will be the cover (max 6)
-         </p>
-         <FilePond
-           files={images}
-           onupdatefiles={handleFileChange}
-           {...filePondOptions}
-         />
-       </div>
-       <button
-         type="submit"
-         className="mb-6 w-full px-7 py-3 bg-custom-red text-white font-medium text-sm uppercase rounded shadow-md hover:opacity-70 hover:shadow-lg focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-       >
-         Create Listing
-       </button>
-       <button
-         className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-         onClick={prevStep}
-       >
-         <GrFormPrevious className="inline" /> Previous
-       </button>
-     </div>
-   );
- };
+    return (
+      <div>
+        <h1 className=" flex gap-2 text-2xl md:text-3xl  mb-4">
+          {" "}
+          <IoIosArrowBack
+            className="mt-1 cursor-pointer hover:opacity-70"
+            onClick={prevStep}
+          />{" "}
+          Upload images of your place.
+        </h1>
+        <div className="mb-6">
+          <p className="text-gray-600">
+            The first image will be the cover (max 6)
+          </p>
+          <FilePond
+            files={images}
+            onupdatefiles={handleFileChange}
+            {...filePondOptions}
+          />
+        </div>
+        <button
+          type="submit"
+          className="mb-6 w-full px-7 py-3 bg-custom-red text-white font-medium text-sm uppercase rounded shadow-md hover:opacity-70 hover:shadow-lg focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+        >
+          Create Listing
+        </button>
+      </div>
+    );
+  };
 
-return (
-    <AgentGuard>
-      <main>
-        <div className="flex justify-center w-full mx-auto">
+  return (
+    <main>
+      <div className="mt-8 flex justify-center gap-8 px-4 max-w-6xl mx-auto">
+        <div className="hidden md:block bg-gray-100 text-black shadow-lg p-12 rounded-md w-1/2 h-[900px]">
+          <p className="text-4xl mb-8 font-semibold underline-red">
+            Create your listing.
+          </p>
+          <div className="text-xl font-semibold ">
+            <p>Step 1 </p>
+            <p className="mb-2 font-light">Location.</p>
+            <p>Step 2 </p>
+            <p className="mb-2 font-light">Info.</p>
+            <p>Step 3 </p>
+            <p className="mb-2 font-light"> Pricing.</p>
+            <p>Step 4 </p>
+            <p className="mb-2 font-light"> Description.</p>
+            <p>Step 5 </p>
+            <p className="mb-2 font-light"> Images. </p>
+            <p>Step 6 </p>
+            <p className="mb-2 font-light">Wait for our validation.</p>
+            <p>Step 7 </p>
+            <p className="mb-2 font-light"> Listed !</p>
+          </div>
+          <a className="flex ">
+            <img
+              src={process.env.PUBLIC_URL + "/LogoW.png"}
+              alt="Logo"
+              className="flex h-10 mt-28"
+            />
+          </a>
+        </div>
         <form
           onSubmit={onSubmit}
-          className="max-w-sm px-4"
-          onClick={(e) => e.stopPropagation()} 
+          className=" md:w-1/2 "
+          onClick={(e) => e.stopPropagation()}
         >
           {renderStepIndicator()}
           {renderStepContent()}
         </form>
-        </div>
-      </main>
-    </AgentGuard>
+      </div>
+    </main>
   );
-};
+}

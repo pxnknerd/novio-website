@@ -29,6 +29,7 @@
     "lodash": "^4.17.21",
     "mapbox-gl": "^3.1.2",
     "mapbox-gl-geocoder": "^2.0.1",
+    "mdb-react-ui-kit": "^7.2.0",
     "mini-svg-data-uri": "^1.4.4",
     "ngeohash": "^0.6.3",
     "rc-slider": "^10.5.0",

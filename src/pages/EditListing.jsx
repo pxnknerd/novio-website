@@ -39,10 +39,8 @@ export default function CreateListing() {
   const [listing, setListing] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [images, setImages] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState([]);
   const auth = getAuth();
-  const [mapCenter, setMapCenter] = useState([33.5731, -7.5898]); // Casablanca coordinates
-  const [markerPosition, setMarkerPosition] = useState([33.5731, -7.5898]);
+  const [finalStep, setFinalStep] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     type: "rent",
@@ -61,6 +59,7 @@ export default function CreateListing() {
     regularPrice: 0,
     discountedPrice: 0,
     images: {},
+    status: "pending",
   });
 
   const {
@@ -114,6 +113,7 @@ export default function CreateListing() {
         if (docSnap.exists()) {
           setListing(docSnap.data());
           setFormData({ ...docSnap.data() });
+          
           setLoading(false);
         } else {
           navigate("/");
@@ -138,8 +138,35 @@ export default function CreateListing() {
       }));
     }
 
-    if (e.target.id === "size" && isNaN(e.target.value)) {
-      return; // Ignore non-numeric input
+    // Handle 'bedrooms' input
+    if (e.target.id === "bedrooms") {
+      const bedroomsValue = isNaN(e.target.value)
+        ? 0
+        : parseInt(e.target.value);
+      setFormData((prevState) => ({
+        ...prevState,
+        bedrooms: bedroomsValue,
+      }));
+    }
+
+    // Handle 'bathrooms' input
+    if (e.target.id === "bathrooms") {
+      const bathroomsValue = isNaN(e.target.value)
+        ? 0
+        : parseInt(e.target.value);
+      setFormData((prevState) => ({
+        ...prevState,
+        bathrooms: bathroomsValue,
+      }));
+    }
+
+    if (e.target.id === "size") {
+      const sizeValue = isNaN(e.target.value) ? 0 : parseFloat(e.target.value);
+      setFormData((prevState) => ({
+        ...prevState,
+        size: sizeValue,
+      }));
+      return;
     }
 
     // Handle 'yearBuilt' selection from a dropdown
@@ -259,6 +286,7 @@ export default function CreateListing() {
       imgUrls,
       lastEdited: null,
       userRef: auth.currentUser.uid,
+      status: "pending",
     };
 
     delete formDataCopy.images;
@@ -270,8 +298,6 @@ export default function CreateListing() {
       lastEdited: lastEditedTimestamp, // Include the lastEdited timestamp in the update
     });
     setLoading(false);
-    toast.success("Listing Edited");
-    navigate(`/results/${docRef.id}`);
   }
 
   if (loading) {
@@ -311,7 +337,24 @@ export default function CreateListing() {
     setCurrentStep(currentStep - 1);
   };
 
+  
+  const renderConfirmationStep = () => {
+    return (
+      <div>
+        <h1 className="text-2xl md:text-3xl  mb-12">Listing Submitted!</h1>
+        <p className="text-gray-500 mb-2">
+          We have received your demand, and our team will review it. Approval
+          may take a few hours.
+        </p>
+        {/* Add any additional content or styling for the confirmation step */}
+      </div>
+    );
+  };
+
   const renderStepContent = () => {
+       if (finalStep) {
+         return renderConfirmationStep();
+       }
     switch (currentStep) {
       case 1:
         return renderStep1();
@@ -725,12 +768,39 @@ const renderStep5 = () => {
 };
 
   return (
-    <AgentGuard>
       <main>
-        <div className="flex justify-center w-full mx-auto">
+        <div className="mt-8 flex justify-center gap-8 px-4 max-w-6xl mx-auto">
+          <div className="hidden md:block bg-gray-100 text-black shadow-lg p-12 rounded-md w-1/2 h-[900px]">
+            <p className="text-4xl mb-8 font-semibold">
+              Edit your listing.
+            </p>
+            <div className="text-xl font-semibold ">
+              <p>Step 1 </p>
+              <p className="mb-2 font-light">Location.</p>
+              <p>Step 2 </p>
+              <p className="mb-2 font-light">Info.</p>
+              <p>Step 3 </p>
+              <p className="mb-2 font-light"> Pricing.</p>
+              <p>Step 4 </p>
+              <p className="mb-2 font-light"> Description.</p>
+              <p>Step 5 </p>
+              <p className="mb-2 font-light"> Images. </p>
+              <p>Step 6 </p>
+              <p className="mb-2 font-light">Wait for our validation.</p>
+              <p>Step 7 </p>
+              <p className="mb-2 font-light"> Listed !</p>
+            </div>
+            <a className="flex ">
+              <img
+                src={process.env.PUBLIC_URL + "/LogoW.png"}
+                alt="Logo"
+                className="flex h-10 mt-28"
+              />
+            </a>
+          </div>
           <form
             onSubmit={onSubmit}
-            className="max-w-sm px-4"
+            className=" md:w-1/2 "
             onClick={(e) => e.stopPropagation()}
           >
             {renderStepIndicator()}
@@ -738,6 +808,5 @@ const renderStep5 = () => {
           </form>
         </div>
       </main>
-    </AgentGuard>
   );
 }

@@ -32,11 +32,8 @@ export default function DiyListing() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [images, setImages] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState([]);
   const auth = getAuth();
-  const [mapCenter, setMapCenter] = useState([33.5731, -7.5898]);
-  const [markerPosition, setMarkerPosition] = useState([33.5731, -7.5898]);
-  const mapRef = useRef(null);
+  const [finalStep, setFinalStep] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     type: "rent",
@@ -55,6 +52,7 @@ export default function DiyListing() {
     regularPrice: 0,
     discountedPrice: 0,
     images: {},
+    status: "pending",
   });
 
   const {
@@ -108,8 +106,35 @@ export default function DiyListing() {
       }));
     }
 
-    if (e.target.id === "size" && isNaN(e.target.value)) {
-      return; // Ignore non-numeric input
+    // Handle 'bedrooms' input
+    if (e.target.id === "bedrooms") {
+      const bedroomsValue = isNaN(e.target.value)
+        ? 0
+        : parseInt(e.target.value);
+      setFormData((prevState) => ({
+        ...prevState,
+        bedrooms: bedroomsValue,
+      }));
+    }
+
+    // Handle 'bathrooms' input
+    if (e.target.id === "bathrooms") {
+      const bathroomsValue = isNaN(e.target.value)
+        ? 0
+        : parseInt(e.target.value);
+      setFormData((prevState) => ({
+        ...prevState,
+        bathrooms: bathroomsValue,
+      }));
+    }
+
+    if (e.target.id === "size") {
+      const sizeValue = isNaN(e.target.value) ? 0 : parseFloat(e.target.value);
+      setFormData((prevState) => ({
+        ...prevState,
+        size: sizeValue,
+      }));
+      return;
     }
 
     // Handle 'yearBuilt' selection from a dropdown
@@ -138,27 +163,7 @@ export default function DiyListing() {
   async function onSubmit(e) {
     e.preventDefault();
     // Add validation for each form field
-    const requiredFields = [
-      "address",
-      "type",
-      "listingType",
-      "yearBuilt",
-      "size",
-      "bedrooms",
-      "bathrooms",
-      "description",
-      "images",
-    ];
 
-    for (const field of requiredFields) {
-      if (!formData[field]) {
-        toast.error(
-          `Please fill in the ${field.replace(/([A-Z])/g, " $1").toLowerCase()}`
-        );
-        return;
-      }
-    }
-    setLoading(true);
 
     if (images.length > 10) {
       setLoading(false);
@@ -217,6 +222,7 @@ export default function DiyListing() {
       imgUrls,
       timestamp: serverTimestamp(),
       userRef: auth.currentUser.uid,
+      status: "pending",
     };
 
     delete formDataCopy.images;
@@ -224,6 +230,7 @@ export default function DiyListing() {
     const docRef = await addDoc(collection(db, "diylistings"), formDataCopy);
     setLoading(false);
     toast.success("Listing created");
+    setFinalStep(true); 
   }
 
   if (loading) {
@@ -238,22 +245,24 @@ export default function DiyListing() {
     "Images",
   ];
 
-  const renderStepIndicator = () => {
-    return (
-      <div className="flex items-center justify-between mb-8 mt-4">
-        {stepTitles.map((title, index) => (
-          <div
-            key={index}
-            className={`flex-1 h-2 ${
-              index + 1 < currentStep
-                ? "bg-custom-red" // Highlight the steps before the current step
-                : "bg-gray-300"
-            }`}
-          ></div>
-        ))}
-      </div>
-    );
-  };
+ const renderStepIndicator = () => {
+   return (
+     <div className="flex items-center justify-between mb-8 mt-4">
+       {stepTitles.map((title, index) => (
+         <div
+           key={index}
+           className={`flex-1 h-2 ${
+             index + 1 < currentStep ||
+             (finalStep && index + 1 === stepTitles.length)
+               ? "bg-custom-red" // Highlight the steps before the current step and the final step
+               : "bg-gray-300"
+           }`}
+         ></div>
+       ))}
+     </div>
+   );
+ };
+
 
   const nextStep = () => {
     setCurrentStep(currentStep + 1);
@@ -263,7 +272,23 @@ export default function DiyListing() {
     setCurrentStep(currentStep - 1);
   };
 
+  const renderConfirmationStep = () => {
+    return (
+      <div>
+        <h1 className="text-2xl md:text-3xl  mb-12">Listing Submitted!</h1>
+        <p className="text-gray-500 mb-2">
+          We have received your listing, and our team will review it. Approval
+          may take a few hours.
+        </p>
+        {/* Add any additional content or styling for the confirmation step */}
+      </div>
+    );
+  };
+
   const renderStepContent = () => {
+    if (finalStep) {
+      return renderConfirmationStep();
+    }
     switch (currentStep) {
       case 1:
         return renderStep1();
@@ -283,7 +308,7 @@ export default function DiyListing() {
   const renderStep1 = () => {
     return (
       <div>
-        <h1 className="text-3xl mb-12">Where is your place located ?</h1>
+        <h1 className="text-2xl md:text-3xl mb-12">Where is your place located ?</h1>
         <p className=" text-gray-500 mb-2">
           Type the exact address of your home.
         </p>
@@ -331,19 +356,25 @@ export default function DiyListing() {
           className="mb-6 px-3 py-2 mt-6 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
           onClick={nextStep}
         >
-          Next
-          <GrFormNext className="inline" />
+          Confirm
         </button>
       </div>
     );
   };
 
   const renderStep2 = () => {
+      const isLand = listingType === "land";
+      const isOffice = listingType === "office" || listingType === "commercial";
+const isPlace =
+  listingType === "apartment" ||
+  listingType === "villa" ||
+  listingType === "riad" ||
+  listingType === "farmhouse";
     return (
       <div>
-        <h1 className="flex items-center gap-2 text-3xl mb-12">
+        <h1 className="flex gap-2 text-2xl md:text-3xl  mb-12">
           <IoIosArrowBack
-            className="cursor-pointer hover:opacity-70"
+            className="my-1 cursor-pointer hover:opacity-70"
             onClick={prevStep}
           />
           Info about your listing.
@@ -358,7 +389,7 @@ export default function DiyListing() {
             className={`mr-3 px-7 py-3 font-medium text-sm uppercase  rounded transition duration-150 ease-in-out w-full ${
               type === "rent"
                 ? "bg-white text-black border-2 border-gray-200"
-                : "bg-black text-white"
+                : "bg-custom-black text-white"
             }`}
           >
             sell
@@ -371,7 +402,7 @@ export default function DiyListing() {
             className={`mr-3 px-7 py-3 font-medium text-sm uppercase  rounded transition duration-150 ease-in-out w-full ${
               type === "sale"
                 ? "bg-white text-black border-2 border-gray-200"
-                : "bg-black text-white"
+                : "bg-custom-black text-white"
             }`}
           >
             rent
@@ -386,28 +417,13 @@ export default function DiyListing() {
         >
           <option value="villa">Villa</option>
           <option value="apartment">Apartment</option>
-          <option value="commercial">Commercial</option>
           <option value="riad">Riad</option>
-          <option value="land">Land</option>
           <option value="farmhouse">Farmhouse</option>
+          <option value="commercial">Commercial</option>
+          <option value="office">Office</option>
+          <option value="land">Land</option>
         </select>
-        <div className="flex space-x-6 mb-6">
-          <div className="flex-1">
-            <p className="mt-8 text-gray-500 mb-2 ">Year built </p>
-            <select
-              id="yearBuilt"
-              value={yearBuilt}
-              onChange={onChange}
-              className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
-            >
-              {/* Populate options for yearBuilt */}
-              {Array.from({ length: 126 }, (_, index) => (
-                <option key={index} value={2025 - index}>
-                  {2025 - index}
-                </option>
-              ))}
-            </select>
-          </div>
+        {isLand && (
           <div className="flex-1">
             <p className="mt-8 text-gray-500 mb-2 ">Size</p>
             <div className="flex w-full justify-center items-center space-x-6">
@@ -427,103 +443,200 @@ export default function DiyListing() {
               </div>
             </div>
           </div>
-        </div>
+        )}
 
-        <div className="flex space-x-6 mb-6">
-          <div>
-            <p className="text-gray-500 mb-2  ">Beds</p>
-            <input
-              type="number"
-              id="bedrooms"
-              value={bedrooms}
-              onChange={onChange}
-              min="1"
-              max="50"
-              required
-              className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
-            />
+        {isOffice && (
+          <div className="">
+            <div className="">
+              <p className="mt-8 text-gray-500 mb-2 ">Size</p>
+              <div className="flex w-full justify-center items-center space-x-6">
+                <div className="relative w-full">
+                  <input
+                    type="number"
+                    id="size"
+                    value={size}
+                    onChange={onChange}
+                    min="0"
+                    required
+                    className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+                  />
+                  <div className="absolute right-4 sm:right-10 top-1/2 transform -translate-y-1/2 text-md whitespace-nowrap">
+                    m²
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="">
+              <p className="mt-8 text-gray-500 mb-3 ">
+                Does your place have a parking spot ?
+              </p>
+              <div className="flex ">
+                <button
+                  type="button"
+                  id="parking"
+                  value={true}
+                  onClick={onChange}
+                  className={`mr-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                    !parking
+                      ? "bg-white text-black border-2 border-gray-200"
+                      : "bg-custom-black text-white"
+                  }`}
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  id="parking"
+                  value={false}
+                  onClick={onChange}
+                  className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                    parking
+                      ? "bg-white text-black border-2 border-gray-200"
+                      : "bg-custom-black text-white"
+                  }`}
+                >
+                  No
+                </button>
+              </div>
+            </div>
           </div>
+        )}
+        {isPlace && (
           <div>
-            <p className="text-gray-500 mb-2  ">Baths</p>
-            <input
-              type="number"
-              id="bathrooms"
-              value={bathrooms}
-              onChange={onChange}
-              min="1"
-              max="50"
-              required
-              className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
-            />
+            <div className="flex space-x-6 mb-6">
+              <div className="flex-1">
+                <p className="mt-8 text-gray-500 mb-2 ">Year built </p>
+                <select
+                  id="yearBuilt"
+                  value={yearBuilt}
+                  onChange={onChange}
+                  className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+                >
+                  {/* Populate options for yearBuilt */}
+                  {Array.from({ length: 126 }, (_, index) => (
+                    <option key={index} value={2025 - index}>
+                      {2025 - index}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex-1">
+                <p className="mt-8 text-gray-500 mb-2 ">Size</p>
+                <div className="flex w-full justify-center items-center space-x-6">
+                  <div className="relative w-full">
+                    <input
+                      type="number"
+                      id="size"
+                      value={size}
+                      onChange={onChange}
+                      min="0"
+                      required
+                      className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+                    />
+                    <div className="absolute right-4 sm:right-10 top-1/2 transform -translate-y-1/2 text-md whitespace-nowrap">
+                      m²
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex space-x-6 mb-6">
+              <div>
+                <p className="text-gray-500 mb-2  ">Beds</p>
+                <input
+                  type="number"
+                  id="bedrooms"
+                  value={bedrooms}
+                  onChange={onChange}
+                  min="1"
+                  max="50"
+                  required
+                  className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+                />
+              </div>
+              <div>
+                <p className="text-gray-500 mb-2  ">Baths</p>
+                <input
+                  type="number"
+                  id="bathrooms"
+                  value={bathrooms}
+                  onChange={onChange}
+                  min="1"
+                  max="50"
+                  required
+                  className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+                />
+              </div>
+            </div>
+            <p className="mt-8 text-gray-500 mb-3 ">
+              Does your Home have a parking spot ?
+            </p>
+            <div className="flex">
+              <button
+                type="button"
+                id="parking"
+                value={true}
+                onClick={onChange}
+                className={`mr-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                  !parking
+                    ? "bg-white text-black border-2 border-gray-200"
+                    : "bg-custom-black text-white"
+                }`}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                id="parking"
+                value={false}
+                onClick={onChange}
+                className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                  parking
+                    ? "bg-white text-black border-2 border-gray-200"
+                    : "bg-custom-black text-white"
+                }`}
+              >
+                no
+              </button>
+            </div>
+            <p className="mt-8 text-gray-500 mb-2  ">Is it furnished ?</p>
+            <div className="flex">
+              <button
+                type="button"
+                id="furnished"
+                value={true}
+                onClick={onChange}
+                className={`mr-3 px-7 py-3 rounded font-medium text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                  !furnished
+                    ? "bg-white text-black border-2 border-gray-200"
+                    : "bg-custom-black text-white"
+                }`}
+              >
+                yes
+              </button>
+              <button
+                type="button"
+                id="furnished"
+                value={false}
+                onClick={onChange}
+                className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                  furnished
+                    ? "bg-white text-black border-2 border-gray-200"
+                    : "bg-custom-black text-white"
+                }`}
+              >
+                no
+              </button>
+            </div>
           </div>
-        </div>
-        <p className="mt-8 text-gray-500 mb-3 ">
-          Does your Home have a parking spot ?
-        </p>
-        <div className="flex">
-          <button
-            type="button"
-            id="parking"
-            value={true}
-            onClick={onChange}
-            className={`mr-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
-              !parking
-                ? "bg-white text-black border-2 border-gray-200"
-                : "bg-black text-white"
-            }`}
-          >
-            Yes
-          </button>
-          <button
-            type="button"
-            id="parking"
-            value={false}
-            onClick={onChange}
-            className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
-              parking
-                ? "bg-white text-black border-2 border-gray-200"
-                : "bg-black text-white"
-            }`}
-          >
-            no
-          </button>
-        </div>
-        <p className="mt-8 text-gray-500 mb-2  ">Is it furnished ?</p>
-        <div className="flex">
-          <button
-            type="button"
-            id="furnished"
-            value={true}
-            onClick={onChange}
-            className={`mr-3 px-7 py-3 rounded font-medium text-sm uppercase  transition duration-150 ease-in-out w-full ${
-              !furnished
-                ? "bg-white text-black border-2 border-gray-200"
-                : "bg-black text-white"
-            }`}
-          >
-            yes
-          </button>
-          <button
-            type="button"
-            id="furnished"
-            value={false}
-            onClick={onChange}
-            className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
-              furnished
-                ? "bg-white text-black border-2 border-gray-200"
-                : "bg-black text-white"
-            }`}
-          >
-            no
-          </button>
-        </div>
+        )}
         <div className="flex space-x-6 mt-12 justify-start mb-6">
           <button
             className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
             onClick={nextStep}
           >
-            Next
-            <GrFormNext className="inline" />
+            Confirm
           </button>
         </div>
       </div>
@@ -533,10 +646,10 @@ export default function DiyListing() {
   const renderStep3 = () => {
     return (
       <div>
-        <h1 className="flex items-center gap-2 text-3xl mb-12">
+        <h1 className="flex gap-2 text-2xl md:text-3xl  mb-12">
           {" "}
           <IoIosArrowBack
-            className="cursor-pointer hover:opacity-70"
+            className="mt-1 cursor-pointer hover:opacity-70"
             onClick={prevStep}
           />{" "}
           Pricing details for your listing.
@@ -565,13 +678,11 @@ export default function DiyListing() {
         </div>
 
         <div className="flex space-x-6 mt-12 justify-start mb-6">
-
           <button
             className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
             onClick={nextStep}
           >
-            Next
-            <GrFormNext className="inline" />
+            Confirm
           </button>
         </div>
       </div>
@@ -580,13 +691,13 @@ export default function DiyListing() {
   const renderStep4 = () => {
     return (
       <div>
-        <h1 className="flex items-center gap-2 text-3xl mb-12">
+        <h1 className="flex gap-2 text-2xl md:text-3xl mb-12">
           {" "}
           <IoIosArrowBack
-            className="cursor-pointer hover:opacity-70"
+            className="mt-1 cursor-pointer hover:opacity-70"
             onClick={prevStep}
           />{" "}
-          Describe your property.
+          Describe your property details.
         </h1>
         <p className="text-gray-500 mb-2 ">Share details about your property</p>
         <textarea
@@ -603,8 +714,7 @@ export default function DiyListing() {
             className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
             onClick={nextStep}
           >
-            Next
-            <GrFormNext className="inline" />
+            Confirm
           </button>
         </div>
       </div>
@@ -650,10 +760,10 @@ export default function DiyListing() {
 
     return (
       <div>
-        <h1 className=" flex items-center gap-2 text-3xl mb-4">
+        <h1 className=" flex gap-2 text-2xl md:text-3xl  mb-4">
           {" "}
           <IoIosArrowBack
-            className="cursor-pointer hover:opacity-70"
+            className="mt-1 cursor-pointer hover:opacity-70"
             onClick={prevStep}
           />{" "}
           Upload images of your place.
@@ -674,7 +784,6 @@ export default function DiyListing() {
         >
           Create Listing
         </button>
-
       </div>
     );
   };
@@ -682,30 +791,37 @@ export default function DiyListing() {
   return (
     <main>
       <div className="mt-8 flex justify-center gap-8 px-4 max-w-6xl mx-auto">
-        <div className="bg-white text-black border-4 shadow-md p-8 rounded-md w-1/2 h-[900px]">
+        <div className="hidden md:block bg-gray-100 text-black shadow-lg p-12 rounded-md w-1/2 h-[900px]">
           <p className="text-4xl mb-8 font-semibold underline-red">
-            List by yourself.
+            List by Beytty.
           </p>
           <div className="text-xl font-semibold ">
             <p>Step 1 </p>
-            <p className="mb-4 font-light">Location.</p>
+            <p className="mb-2 font-light">Location.</p>
             <p>Step 2 </p>
-            <p className="mb-4 font-light">Info.</p>
+            <p className="mb-2 font-light">Info.</p>
             <p>Step 3 </p>
-            <p className="mb-4 font-light"> Pricing.</p>
+            <p className="mb-2 font-light"> Pricing.</p>
             <p>Step 4 </p>
-            <p className="mb-4 font-light"> Description.</p>
+            <p className="mb-2 font-light"> Description.</p>
             <p>Step 5 </p>
-            <p className="mb-4 font-light"> Images. </p>
+            <p className="mb-2 font-light"> Images. </p>
             <p>Step 6 </p>
-            <p className="mb-4 font-light">Wait for our validation.</p>
+            <p className="mb-2 font-light">Wait for our validation.</p>
             <p>Step 7 </p>
-            <p className="mb-4 font-light"> Listed !</p>
+            <p className="mb-2 font-light"> Listed !</p>
           </div>
+            <a className="flex">
+              <img
+                src={process.env.PUBLIC_URL + "/LogoW.png"}
+                alt="Logo"
+                className="flex h-10 mt-28"
+              />
+            </a>
         </div>
         <form
           onSubmit={onSubmit}
-          className="w-1/2 "
+          className=" md:w-1/2 "
           onClick={(e) => e.stopPropagation()}
         >
           {renderStepIndicator()}

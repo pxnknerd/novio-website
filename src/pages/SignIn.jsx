@@ -74,7 +74,7 @@ export default function SignIn() {
         </div>
         <div className="flex items-center py-12 bg-white md:my-0 md:h-screen md:shadow-md shadow-black/30">
           <form onSubmit={onSubmit} className="max-w-md px-4 w-[28rem] mx-auto">
-            <div className=" justify-start text-center md:text-left text-xl md:text-4xl py-8 text-black">
+            <div className=" justify-start text-center md:text-left text-xl md:text-4xl md:py-8 text-black">
               Sign In
             </div>
             <input
@@ -115,14 +115,12 @@ export default function SignIn() {
 
             <div className="flex justify-between whitespace-nowrap text-sm sm:text-md">
               <p className="mb-6">
-                Don't have an account?
                 <Link
                   to="/sign-up"
                   className="text-black hover:text-red-700 transition duration-200 ease-in-out font-semibold"
                 >
                   {" "}
-                  Sign up
-                </Link>
+Create new account                </Link>
               </p>
               <p>
                 <Link

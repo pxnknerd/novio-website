@@ -49,7 +49,7 @@ export default function Listing() {
     async function fetchListing() {
       const docRef = doc(db, "listings", params.listingId);
       const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
+    if (docSnap.exists() && docSnap.data().status === "approved") {
         setListing(docSnap.data());
         setLoading(false);
       }
@@ -69,10 +69,8 @@ export default function Listing() {
 
   return (
     <main>
-      <div className="md:hidden bg-gray-100 h-[250px]">
-        <div
-          style={{ height: "300px", overflow: "hidden", position: "relative" }}
-        >
+      <div className="md:hidden bg-gray-100 mb-4">
+        <div style={{ overflow: "hidden", position: "relative" }}>
           <ImageGallery
             items={images}
             showThumbnails={false}
@@ -109,7 +107,7 @@ export default function Listing() {
           )}
         </div>
       </div>
-      <div className="max-w-6xl px-8 py-8 mx-auto">
+      <div className="hidden md:block max-w-6xl px-8 py-8 mx-auto">
         <div className="hidden md:grid grid-cols-2 gap-1">
           <div className="col-span-2 md:col-span-1 relative h-[400px]">
             {/* Main Image with rounded top-left and bottom-left corners */}
@@ -171,7 +169,11 @@ export default function Listing() {
             </button>
             {/* Display all images in the popup */}
             <div className="popup-container">
-              <ImageGallery items={images} />
+              <ImageGallery
+                showPlayButton={false}
+                showFullscreenButton={false}
+                items={images}
+              />
             </div>
           </div>
         </div>

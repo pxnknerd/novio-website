@@ -97,7 +97,7 @@ export default function SignUp() {
 
       const user = userCredential.user;
       // Set initial profile picture
-      const initialProfilePicture = process.env.PUBLIC_URL + "/anonympfp.jpeg";
+      const initialProfilePicture = process.env.PUBLIC_URL + "/anonym.png";
 ; // You can customize this
       await updateProfile(auth.currentUser, {
         displayName: `${firstName} ${lastName}`,
@@ -160,7 +160,7 @@ export default function SignUp() {
         </div>
         <div className="flex items-center py-12 bg-white md:my-0 md:h-screen md:shadow-md shadow-black/30">
           <form onSubmit={onSubmit} className="max-w-md px-4 w-[28rem] mx-auto">
-            <div className=" justify-start text-center md:text-left text-xl md:text-4xl py-8 text-black">
+            <div className=" justify-start text-center md:text-left text-xl md:text-4xl md:py-8 text-black">
               Sign Up
             </div>
             <input

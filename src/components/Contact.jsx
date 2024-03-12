@@ -79,6 +79,14 @@ export default function Contact({ userRef, listing }) {
             )}
             {currentStep === "initial" && (
               <div className="flex flex-col space-y-4">
+                <div className=" justify-center mx-auto space-x-2">
+                  <img
+                    src={landlord.photoURL || "/default-profile-picture.jpg"}
+                    alt="Landlord Profile"
+                    className="h-10 w-10 mb-4 rounded-full justify-center mx-auto object-cover"
+                  />
+                  <p>Listed by {""}{`${landlord.firstName} ${landlord.lastName}`}</p>
+                </div>{" "}
                 <button
                   className="bg-custom-black text-white rounded-md py-3 md:text-xl"
                   type="button"

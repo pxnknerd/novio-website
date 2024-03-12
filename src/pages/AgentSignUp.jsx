@@ -11,6 +11,7 @@ import Select from "react-select";
 
 export default function AgentSignUp() {
   const [showPassword, setShowPassword] = useState(false);
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -19,6 +20,7 @@ export default function AgentSignUp() {
     password: "",
     phoneNumber: "+212",
     selectedCities: [],
+    selectedLanguages: [],
   }); 
     const [emailError, setEmailError] = useState("");
       const [phoneNumberError, setPhoneNumberError] = useState("");
@@ -58,13 +60,25 @@ export default function AgentSignUp() {
       "Tétouan",
       "Tiznit",
     ];
+
+  const languages = ["English", "French", "Arabic", "Spanish", "Tamazight"];
+
+
     const isValidMoroccanPhoneNumber = (number) => {
       const moroccanPhoneNumberRegex = /^\+212[5-9]\d{8}$/;
       return moroccanPhoneNumberRegex.test(number);
     };
 
-  const { firstName, lastName, email, agency, password, phoneNumber, selectedCities} =
-    formData;
+  const {
+    firstName,
+    lastName,
+    email,
+    agency,
+    password,
+    phoneNumber,
+    selectedCities,
+    selectedLanguages
+  } = formData;
   const navigate = useNavigate()
   function onChange(e) {
     setFormData((prevState)=>({
@@ -84,6 +98,18 @@ const onCityChange = (selectedOptions) => {
     selectedCities: selectedOptions.map((option) => option.value),
   }));
 };
+
+
+ const onLanguageChange = (selectedOptions) => {
+   if (selectedOptions.length > 4) {
+     return;
+   }
+
+   setFormData((prevState) => ({
+     ...prevState,
+     selectedLanguages: selectedOptions.map((option) => option.value),
+   }));
+ };
 
 const onPhoneNumberChange = (e) => {
   const remainingPart = e.target.value.replace(/^\+212/, "");
@@ -147,6 +173,8 @@ const onPhoneNumberChange = (e) => {
       formDataCopy.timestamp = serverTimestamp();
       formDataCopy.status = "pending";
       formDataCopy.selectedCities = selectedCities;
+      formDataCopy.selectedLanguages = selectedLanguages;
+
       // Ensure both operations are atomic
       await Promise.all([
         updateProfile(auth.currentUser, {
@@ -198,7 +226,7 @@ const onPhoneNumberChange = (e) => {
         </div>
         <div className="flex items-center py-12 bg-white md:my-0 md:h-screen md:shadow-md shadow-black/30">
           <form onSubmit={onSubmit} className="max-w-md px-4 w-[28rem] mx-auto">
-            <div className=" justify-start text-center md:text-left text-xl md:text-4xl py-8 text-black">
+            <div className=" justify-start text-center md:text-left text-xl md:text-4xl md:py-8 text-black">
               Create agent account
             </div>
 
@@ -256,6 +284,27 @@ const onPhoneNumberChange = (e) => {
                   label: city,
                 }))}
                 onChange={onCityChange}
+              />
+            </div>
+            <div className="mt-6">
+              <label
+                htmlFor="selectedLanguages"
+                className="text-md font-medium text-black"
+              ></label>
+              <Select
+                id="selectedLanguages"
+                name="selectedLanguages"
+                placeholder="Select up to 4 languages:"
+                options={languages.map((language) => ({
+                  value: language,
+                  label: language,
+                }))}
+                isMulti
+                value={selectedLanguages.map((language) => ({
+                  value: language,
+                  label: language,
+                }))}
+                onChange={onLanguageChange}
               />
             </div>
             <input

@@ -46,10 +46,10 @@ body {
   }
 
 .bg-custom-black:hover {
-    background-color: #100f0f;
+    background-color: #575757;
   }
 .bg-custom-black {
-    background-color: #0e0e10;
+    background-color: #575757;
   }
 
 .text-custom-black {
@@ -150,19 +150,19 @@ marker-dot {
 /* Add this to your CSS or styling solution */
 /* Add this to your CSS or styling solution */
 /* Add this to your CSS or styling solution */
-.underline-red {
+underline-red {
   display: inline-block;
   position: relative;
 }
 
-.underline-red::after {
+underline-red::after {
   content: '';
   display: block;
   position: absolute;
   left: 0;
   bottom: 2px; /* Adjust this value to control the distance between text and underline */
   width: 100%;
-  height: 5px;
+  height: 7px;
   background-color: red; /* You can adjust the color as needed */
 }
 

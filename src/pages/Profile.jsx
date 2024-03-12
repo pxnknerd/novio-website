@@ -16,6 +16,15 @@ import { toast } from "react-toastify";
 import { db } from "../firebase";
 import ListingItem from "../components/ListingItem";
 import { FaAngleDown } from "react-icons/fa6";
+import { FiEdit } from "react-icons/fi";
+import { TbEdit } from "react-icons/tb";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
+import { PiSignOutBold } from "react-icons/pi";
+
+
 
 export default function Profile() {
   const auth = getAuth();
@@ -24,6 +33,7 @@ export default function Profile() {
   const [listings, setListings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const [formData, setFormData] = useState({
     firstName: auth.currentUser.displayName.split(" ")[0] || "",
@@ -31,8 +41,9 @@ export default function Profile() {
     agency: auth.currentUser.displayName.split(" ")[2] || "",
     email: auth.currentUser.email,
     phoneNumber: "",
+    photoURL: auth.currentUser.photoURL || "",
   });
-  const { firstName, lastName, agency, email } = formData;
+  const { firstName, lastName, agency, email, photoURL } = formData;
   const [isAgentUser, setIsAgentUser] = useState(false);
   const [userStatus, setUserStatus] = useState(null);
   const [isMyProfileOpen, setIsMyProfileOpen] = useState(false);
@@ -47,7 +58,11 @@ export default function Profile() {
         setIsAgentUser(agentStatus);
 
         // Fetch user status
-        const userDocRef = doc(db, "agents", auth.currentUser.uid);
+        const userDocRef = doc(
+          db,
+          isAgentUser ? "agents" : "users",
+          auth.currentUser.uid
+        );
         const userDoc = await getDoc(userDocRef);
 
         if (userDoc.exists()) {
@@ -64,6 +79,7 @@ export default function Profile() {
         const q = query(
           listingRef,
           where("userRef", "==", auth.currentUser.uid),
+          where("status", "==", "approved"), // Add this condition
           orderBy("timestamp", "desc")
         );
         const querySnap = await getDocs(q);
@@ -76,31 +92,10 @@ export default function Profile() {
         });
         setListings(listings);
         setLoading(false);
-        
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    }
-
-    fetchData();
-  }, [auth.currentUser.uid]);
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        // ... (your existing code)
 
         // Fetch user phone number
-        const userDocRef = doc(
-          db,
-          isAgentUser ? "agents" : "users",
-          auth.currentUser.uid
-        );
-        const userDoc = await getDoc(userDocRef);
-
-        if (userDoc.exists()) {
-          const userPhoneNumber = userDoc.data().phoneNumber;
-          setPhoneNumber(userPhoneNumber);
-        }
+        const userPhoneNumber = userDoc.data().phoneNumber;
+        setPhoneNumber(userPhoneNumber);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -140,34 +135,34 @@ export default function Profile() {
     }
   }
 
- async function onSubmit() {
-   try {
-     const displayName = `${firstName} ${lastName} ${agency}`;
+  async function onSubmit() {
+    try {
+      const displayName = `${firstName} ${lastName} ${agency}`;
 
-     // Update display name in firebase auth
-     await updateProfile(auth.currentUser, {
-       displayName,
-     });
+      // Update display name in firebase auth
+      await updateProfile(auth.currentUser, {
+        displayName,
+      });
 
-     // Update name and phone number in Firestore based on user type (agent or regular user)
-     const userDocRef = doc(
-       db,
-       isAgentUser ? "agents" : "users",
-       auth.currentUser.uid
-     );
+      // Update name and phone number in Firestore based on user type (agent or regular user)
+      const userDocRef = doc(
+        db,
+        isAgentUser ? "agents" : "users",
+        auth.currentUser.uid
+      );
 
-     await updateDoc(userDocRef, {
-       firstName,
-       lastName,
-       agency,
-       phoneNumber: formData.phoneNumber,
-     });
+      await updateDoc(userDocRef, {
+        firstName,
+        lastName,
+        agency,
+        phoneNumber,
+      });
 
-     toast.success("Profile details updated");
-   } catch (error) {
-     toast.error("Could not update the profile details");
-   }
- }
+      toast.success("Profile details updated");
+    } catch (error) {
+      toast.error("Could not update the profile details");
+    }
+  }
 
   const isAgent = async () => {
     const agentDocRef = doc(db, "agents", auth.currentUser.uid);
@@ -176,117 +171,193 @@ export default function Profile() {
   };
 
   const renderGreeting = () => {
-    const displayName = `${firstName}`;
+    const displayName = `${firstName}${" "}${lastName}`;
+
+    const handleImageChange = async (e) => {
+      const file = e.target.files[0];
+      setSelectedImage(file);
+
+      if (file) {
+        const storage = getStorage();
+        const storageRef = ref(
+          storage,
+          `profilePictures/${auth.currentUser.uid}`
+        );
+        await uploadBytes(storageRef, file);
+        const imageUrl = await getDownloadURL(storageRef);
+
+        // Update the user's profile picture in Firestore
+        const userDocRef = doc(
+          db,
+          isAgentUser ? "agents" : "users",
+          auth.currentUser.uid
+        );
+        await updateDoc(userDocRef, {
+          photoURL: imageUrl,
+        });
+
+        // Update the local state
+        setFormData((prevState) => ({
+          ...prevState,
+          photoURL: imageUrl,
+        }));
+
+        // Update the current user's photoURL in the auth object
+        await updateProfile(auth.currentUser, {
+          photoURL: imageUrl,
+        });
+
+        toast.success("Profile picture updated");
+      }
+    };
 
     if (isAgentUser) {
       return (
-        <p>
-          Hey agent <strong>{displayName}</strong>.
-        </p>
+        <div className="flex flex-col justify-center items-center w-full mx-auto">
+          <div className="flex w-full bg-gray-100 h-40" ></div>
+          <div className="flex relative -top-10">
+            <div className="relative flex items-end ">
+              <img
+                src={photoURL || process.env.PUBLIC_URL + "/anonym.png"}
+                alt="Profile"
+                className="h-20 w-20 rounded-full object-cover mr-2"
+              />
+              <label
+                htmlFor="imageInput"
+                className="absolute h-8 w-8 top-0 right-0 shadow-lg text-black bg-white rounded-full p-1 cursor-pointer"
+              >
+                <input
+                  type="file"
+                  id="imageInput"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleImageChange}
+                />
+                <FiEdit className="h-5 w-4 mx-auto  hover:opacity-40" />
+              </label>
+            </div>
+          </div>
+          <p className="md:text-2xl -mt-4">
+            <strong>{displayName}</strong>
+          </p>
+          {userStatus === "approved" && (
+            <p className="flex items-center gap-1 text-sm md:text-md">
+              <RiVerifiedBadgeFill /> Verified agent
+            </p>
+          )}
+          {userStatus !== "approved" && (
+            <p className="flex items-center gap-1 text-sm md:text-md">
+              Pending verification...
+            </p>
+          )}
+        </div>
       );
     } else {
       return (
-        <p>
-          Hey <strong>{displayName}</strong>.
-        </p>
+        <div className="flex flex-col justify-center items-center w-full mx-auto">
+          <div className="flex relative">
+            <div className="relative flex items-end">
+              {" "}
+              <img
+                src={photoURL || process.env.PUBLIC_URL + "/anonym.png"}
+                alt="Profile"
+                className="h-20 w-20 rounded-full object-cover mr-2"
+              />
+            </div>
+          </div>
+          <p className="md:text-2xl mt-2">
+            <strong>{displayName}</strong>
+          </p>
+        </div>
       );
     }
   };
 
   return (
-    <div className="bg-white h-full">
-      <section className="px-6 pt-6 max-w-6xl mx-auto flex justify-center items-center  flex-col">
+    <div className="max-w-6xl mx-auto rounded  h-full">
+      <section className="px-4 max-w-6xl mx-auto flex justify-center items-center  flex-col">
         <div className="w-full mt-6 px-3">
-          <div className="mb-12 text-xl md:text-2xl ">{renderGreeting()}</div>
+          <div className="mb-8">{renderGreeting()}</div>
+
           {/* My Profile Section */}
           <div className="mb-4">
             <div
               className="flex items-center justify-between "
               onClick={() => setIsMyProfileOpen(!isMyProfileOpen)}
             >
-              <h2 className="cursor-pointer text-lg  mb-2">My Profile</h2>
-              <FaAngleDown
-                className={`cursor-pointer transition-transform ease-in-out duration-200 transform ${
-                  isMyProfileOpen ? "rotate-180" : ""
-                }`}
-              />
+              <h2 className="cursor-pointer text-md md:text-xl ">My Profile</h2>
+              <p className="flex items-center">
+                <span
+                  onClick={() => {
+                    changeDetail && onSubmit();
+                    setChangeDetail((prevState) => !prevState);
+                  }}
+                  className="text-black text-md md:text-xl capitalize hover:text-gray-300 transition ease-in-out duration-150 cursor-pointer"
+                >
+                  {changeDetail ? "Apply Change" : "Edit Profile"}
+                </span>
+              </p>{" "}
             </div>
-            {isMyProfileOpen && (
-              <form>
-                <p className="mt-6 mb-2">First name</p>
-                <input
-                  type="text"
+            <form className="text-md md:text-xl">
+              <div className="md:flex md:gap-2">
+                <TextField
                   id="firstName"
+                  label="First name"
                   value={firstName}
                   disabled={!changeDetail}
                   onChange={onChange}
-                  className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white  rounded transition ease-in-out ${
-                    changeDetail && "bg-gray-200 focus:bg-gray-200"
-                  }`}
+                  fullWidth
+                  variant="outlined"
+                  margin="normal"
                 />
-                <p className="mb-2">Last name</p>
-                <input
-                  type="text"
+                <TextField
                   id="lastName"
+                  label="Last name"
                   value={lastName}
                   disabled={!changeDetail}
                   onChange={onChange}
-                  className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white rounded  transition ease-in-out ${
-                    changeDetail && "bg-gray-200 focus:bg-gray-200"
-                  }`}
+                  fullWidth
+                  variant="outlined"
+                  margin="normal"
                 />
-                <p className="mb-2">Phone Number</p>
-                <input
-                  type="tel"
-                  id="phoneNumber"
-                  value={phoneNumber}
-                  disabled={!changeDetail}
-                  onChange={onChange}
-                  className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white  rounded transition ease-in-out ${
-                    changeDetail && "bg-gray-200 focus:bg-gray-200"
-                  }`}
-                />
-                {isAgentUser && (
-                  <div>
-                    <p className="mb-2">Agency</p>
-                    <input
-                      type="text"
-                      id="agency"
-                      value={agency}
-                      disabled={!changeDetail}
-                      onChange={onChange}
-                      className={`mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white rounded transition ease-in-out ${
-                        changeDetail && "bg-gray-200 focus:bg-gray-200"
-                      }`}
-                    />
-                  </div>
-                )}
-
-                <p className="mb-2">Email</p>
-                <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  disabled
-                  className="mb-6 w-full md:w-[50%] px-4 py-2 text-md text-gray-700 bg-white rounded transition ease-in-out"
-                />
-
-                <div className="flex justify-center sm:justify-start whitespace-nowrap mb-6">
-                  <p className="flex items-center">
-                    <span
-                      onClick={() => {
-                        changeDetail && onSubmit();
-                        setChangeDetail((prevState) => !prevState);
-                      }}
-                      className="text-black md:text-md font-semibold capitalize hover:text-gray-300 transition ease-in-out duration-150 cursor-pointer"
-                    >
-                      {changeDetail ? "Apply Change" : "Edit Profile"}
-                    </span>
-                  </p>
+              </div>
+              {isAgentUser && (
+                <div>
+                  <TextField
+                    id="agency"
+                    label="Agency"
+                    value={agency}
+                    disabled={!changeDetail}
+                    onChange={onChange}
+                    fullWidth
+                    variant="outlined"
+                    margin="normal"
+                  />
                 </div>
-              </form>
-            )}
-            <div className="border-t flex-1 after:border-gray-300"></div>
+              )}{" "}
+              <TextField
+                id="phoneNumber"
+                label="Phone Number"
+                value={phoneNumber}
+                disabled
+                onChange={onChange}
+                fullWidth
+                variant="outlined"
+                margin="normal"
+              />
+              <TextField
+                id="email"
+                label="Email"
+                value={email}
+                disabled
+                onChange={onChange}
+                fullWidth
+                variant="outlined"
+                margin="normal"
+              />
+            </form>
+
+            <div className="border-t flex-1 mt-4 after:border-gray-300"></div>
           </div>
 
           {/* My Listings Section */}
@@ -295,7 +366,9 @@ export default function Profile() {
               className="flex items-center justify-between"
               onClick={() => setIsMyListingsOpen(!isMyListingsOpen)}
             >
-              <h2 className="cursor-pointer text-lg  mb-2">My Listings</h2>
+              <h2 className="cursor-pointer text-md md:text-xl  mb-2">
+                My Listings
+              </h2>
               <FaAngleDown
                 className={`cursor-pointer transition-transform ease-in-out duration-200 transform ${
                   isMyListingsOpen ? "rotate-180" : ""
@@ -341,9 +414,9 @@ export default function Profile() {
           <div className="flex justify-center sm:justify-start whitespace-nowrap mb-6  ">
             <p
               onClick={onLogout}
-              className=" mt-4 text-lg font-semibold capitalize hover:text-gray-300 transition ease-in-out duration-200 cursor-pointer"
+              className="flex items-center gap-1 mt-8 text-lg  capitalize hover:text-gray-300 transition ease-in-out duration-200 cursor-pointer"
             >
-              Sign out
+              Sign out <PiSignOutBold />
             </p>
           </div>
         </div>

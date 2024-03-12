@@ -121,6 +121,8 @@ export default function Results() {
       const listingRef = collection(db, "listings");
 
       let baseQuery = query(listingRef);
+          baseQuery = query(baseQuery, where("status", "==", "approved"));
+
 
       if (filters.type) {
         baseQuery = query(baseQuery, where("type", "==", filters.type));
@@ -228,7 +230,7 @@ export default function Results() {
   return (
     <div className="flex flex-col border-t-2 h-screen">
       <SecondHeader />
-      <div className=" flex px-2 gap-4 mt-2 mb-2 bg-white items-center ">
+      <div className="hidden md:flex px-2 gap-4 mt-2 mb-2 bg-white items-center ">
         <div className="hidden relative md:px-2 sm:flex items-center">
           <Autocomplete
             className="bg-white rounded outline-0 custom-autocomplete"
@@ -483,18 +485,20 @@ export default function Results() {
         </div>
 
         <div className=" md:w-2/5 overflow-y-auto ">
-          <p className="text-2xl px-3 mb-2 ">Available listings.</p>
+          <p className="text-xl md:text-2xl px-3 mt-2 ">Available listings.</p>
           <div className="flex px-3">
             <div className="w-1/2 justify-start">
-              <p className="mb-4">{listings ? listings.length : 0} results</p>
+              <p className="mb-4 text-sm md:text-md">
+                {listings ? listings.length : 0} results
+              </p>
             </div>
             <div className="flex px-2 w-1/2 justify-end">
-              <p className="flex h-2/3 justify-start text-red-600 font-semibold hover:text-red-800 cursor-pointer">
+              <p className="flex h-2/3 text-sm md:text-md justify-start text-red-600 font-semibold hover:text-red-800 cursor-pointer">
                 Sort:{" "}
                 {selectedSortingOption.label !== "" &&
                   `${selectedSortingOption.label}`}
                 <IoIosArrowDown
-                  className="mt-1.5 ml-2"
+                  className="mt-1 ml-1"
                   onClick={handleMenuOpen}
                 />
                 <Menu
@@ -520,7 +524,7 @@ export default function Results() {
             ) : listings.length > 0 ? (
               <>
                 <main className="flex flex-col mx-auto items-center justify-center ">
-                  <ul className="w-full  sm:grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-2">
+                  <ul className="w-full  sm:grid grid-cols-1 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-2">
                     {listings.map((listing) => (
                       <ListingItem
                         key={listing.id}

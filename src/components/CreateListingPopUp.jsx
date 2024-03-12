@@ -20,6 +20,8 @@ import { FilePond, registerPlugin } from "react-filepond";
 import "filepond/dist/filepond.min.css";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css";
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
+import { IoIosArrowBack } from "react-icons/io";
+
 
 registerPlugin(FilePondPluginImagePreview);
 
@@ -31,6 +33,7 @@ const CreateListingPopUp = ({ closePopUp }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [images, setImages] = useState([]);
   const auth = getAuth();
+    const [finalStep, setFinalStep] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     type: "rent",
@@ -49,6 +52,7 @@ const CreateListingPopUp = ({ closePopUp }) => {
     regularPrice: 0,
     discountedPrice: 0,
     images: {},
+    status: "pending",
   });
 
   const {
@@ -100,8 +104,35 @@ const handleMapClick = (event) => {
       }));
     }
 
-    if (e.target.id === "size" && isNaN(e.target.value)) {
-      return; // Ignore non-numeric input
+    // Handle 'bedrooms' input
+    if (e.target.id === "bedrooms") {
+      const bedroomsValue = isNaN(e.target.value)
+        ? 0
+        : parseInt(e.target.value);
+      setFormData((prevState) => ({
+        ...prevState,
+        bedrooms: bedroomsValue,
+      }));
+    }
+
+    // Handle 'bathrooms' input
+    if (e.target.id === "bathrooms") {
+      const bathroomsValue = isNaN(e.target.value)
+        ? 0
+        : parseInt(e.target.value);
+      setFormData((prevState) => ({
+        ...prevState,
+        bathrooms: bathroomsValue,
+      }));
+    }
+
+    if (e.target.id === "size") {
+      const sizeValue = isNaN(e.target.value) ? 0 : parseFloat(e.target.value);
+      setFormData((prevState) => ({
+        ...prevState,
+        size: sizeValue,
+      }));
+      return;
     }
 
     // Handle 'yearBuilt' selection from a dropdown
@@ -210,17 +241,17 @@ const handleMapClick = (event) => {
       ...formData,
       imgUrls,
       timestamp: serverTimestamp(),
-      lastEdited: null, 
+      lastEdited: null,
       userRef: auth.currentUser.uid,
+      status: "pending",
     };
 
     delete formDataCopy.images;
     !formDataCopy.offer && delete formDataCopy.discountedPrice;
     const docRef = await addDoc(collection(db, "listings"), formDataCopy);
     setLoading(false);
-    toast.success("Listing created");
+    toast.success("Listing submitted");
     closePopUp();
-    navigate(`/listingdetails/${docRef.id}`);
   }
 
   if (loading) {
@@ -237,448 +268,555 @@ const handleMapClick = (event) => {
 
  
 
-  const renderStepIndicator = () => {
-    return (
-      <div className="flex items-center justify-between mb-8 mt-4">
-        {stepTitles.map((title, index) => (
-          <div
-            key={index}
-            className={`flex-1 h-2 ${
-              index + 1 < currentStep
-                ? "bg-custom-red" // Highlight the steps before the current step
-                : "bg-gray-300"
-            }`}
-          ></div>
-        ))}
-      </div>
-    );
-  };
 
-  const nextStep = () => {
-    setCurrentStep(currentStep + 1);
-  };
+ const renderStepIndicator = () => {
+   return (
+     <div className="flex items-center justify-between mb-8 mt-4">
+       {stepTitles.map((title, index) => (
+         <div
+           key={index}
+           className={`flex-1 h-2 ${
+             index + 1 < currentStep ||
+             (finalStep && index + 1 === stepTitles.length)
+               ? "bg-custom-red" // Highlight the steps before the current step and the final step
+               : "bg-gray-300"
+           }`}
+         ></div>
+       ))}
+     </div>
+   );
+ };
 
-  const prevStep = () => {
-    setCurrentStep(currentStep - 1);
-  };
+ const nextStep = () => {
+   setCurrentStep(currentStep + 1);
+ };
 
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return renderStep1();
-      case 2:
-        return renderStep2();
-      case 3:
-        return renderStep3();
-      case 4:
-        return renderStep4();
-      case 5:
-        return renderStep5();
-      default:
-        return null;
-    }
-  };
-  const renderStep1 = () => {
-    return (
-      <div>
-        <h1 className="text-3xl mb-12">Where is your place located ?</h1>
-        <p className=" text-gray-500 mb-2">
-          Type the exact address of your home.
-        </p>
-        <input
-          type="address"
-          id="address"
-          value={address}
-          onChange={onChange}
-          placeholder=""
-          className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-2 border-gray-300 rounded transition ease-in-out"
-        />
-        <p className=" text-gray-500 mb-2">
-          Click and drop the pin on the map to select the location.
-        </p>
-        <div className="h-[400px] bg-gray-200">
-          <ReactMapGL
-            {...viewport}
-            mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
-            mapStyle="mapbox://styles/mohamedmakdad/clsqz4sct00xn01pf8o9vg38g"
-            onMove={(evt) => setViewport(evt.viewport)}
-            onClick={handleMapClick}
-          >
-            {formData.latitude !== 0 && formData.longitude !== 0 && (
-              <Marker
-                latitude={formData.latitude}
-                longitude={formData.longitude}
-                offsetTop={-20}
-                offsetLeft={-10}
-                anchor="bottom" // Set the anchor point to the bottom
-              >
-                <img
-                  src="/MyPin.svg"
-                  alt="Pin"
-                  style={{ width: "40px", height: "40px" }}
-                />
-              </Marker>
-            )}
-            <div style={{ position: "absolute", right: 10, top: 10 }}>
-              <NavigationControl />
-            </div>
-          </ReactMapGL>{" "}
-        </div>
+ const prevStep = () => {
+   setCurrentStep(currentStep - 1);
+ };
 
-        <button
-          className="mb-6 px-3 py-2 mt-6 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-          onClick={nextStep}
-        >
-          Next
-          <GrFormNext className="inline" />
-        </button>
-      </div>
-    );
-  };
+ const renderConfirmationStep = () => {
+   return (
+     <div>
+       <h1 className="text-2xl md:text-3xl  mb-12">Listing Submitted!</h1>
+       <p className="text-gray-500 mb-2">
+         We have received your listing, and our team will review it. Approval
+         may take a few hours.
+       </p>
+       {/* Add any additional content or styling for the confirmation step */}
+     </div>
+   );
+ };
 
-  const renderStep2 = () => {
-    return (
-      <div>
-        <h1 className="text-3xl mb-12">Info about your listing.</h1>
-        <p className="text-gray-500 mb-2 ">Do you want to sell or rent ?</p>
-        <div className="flex">
-          <button
-            type="button"
-            id="type"
-            value="sale"
-            onClick={onChange}
-            className={`mr-3 px-7 py-3 font-medium text-sm uppercase  rounded transition duration-150 ease-in-out w-full ${
-              type === "rent"
-                ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
-            }`}
-          >
-            sell
-          </button>
-          <button
-            type="button"
-            id="type"
-            value="rent"
-            onClick={onChange}
-            className={`mr-3 px-7 py-3 font-medium text-sm uppercase  rounded transition duration-150 ease-in-out w-full ${
-              type === "sale"
-                ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
-            }`}
-          >
-            rent
-          </button>
-        </div>
-        <p className="mt-8 text-gray-500 mb-2 ">What's your listing type ?</p>
-        <select
-          id="listingType"
-          value={listingType}
-          onChange={onChange}
-          className="w-full  px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
-        >
-          <option value="villa">Villa</option>
-          <option value="apartment">Apartment</option>
-          <option value="commercial">Commercial</option>
-          <option value="riad">Riad</option>
-          <option value="land">Land</option>
-          <option value="farmhouse">Farmhouse</option>
-        </select>
-        <div className="flex space-x-6 mb-6">
-          <div className="flex-1">
-            <p className="mt-8 text-gray-500 mb-2 ">Year built </p>
-            <select
-              id="yearBuilt"
-              value={yearBuilt}
-              onChange={onChange}
-              className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
-            >
-              {/* Populate options for yearBuilt */}
-              {Array.from({ length: 126 }, (_, index) => (
-                <option key={index} value={2025 - index}>
-                  {2025 - index}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex-1">
-            <p className="mt-8 text-gray-500 mb-2 ">Size</p>
-            <div className="flex w-full justify-center items-center space-x-6">
-              <div className="relative w-full">
-                <input
-                  type="number"
-                  id="size"
-                  value={size}
-                  onChange={onChange}
-                  min="0"
-                  required
-                  className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
-                />
-                <div className="absolute right-4 sm:right-10 top-1/2 transform -translate-y-1/2 text-md whitespace-nowrap">
-                  m²
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+ const renderStepContent = () => {
+   if (finalStep) {
+     return renderConfirmationStep();
+   }
+   switch (currentStep) {
+     case 1:
+       return renderStep1();
+     case 2:
+       return renderStep2();
+     case 3:
+       return renderStep3();
+     case 4:
+       return renderStep4();
+     case 5:
+       return renderStep5();
+     default:
+       return null;
+   }
+ };
 
-        <div className="flex space-x-6 mb-6">
-          <div>
-            <p className="text-gray-500 mb-2  ">Beds</p>
-            <input
-              type="number"
-              id="bedrooms"
-              value={bedrooms}
-              onChange={onChange}
-              min="1"
-              max="50"
-              required
-              className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
-            />
-          </div>
-          <div>
-            <p className="text-gray-500 mb-2  ">Baths</p>
-            <input
-              type="number"
-              id="bathrooms"
-              value={bathrooms}
-              onChange={onChange}
-              min="1"
-              max="50"
-              required
-              className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
-            />
-          </div>
-        </div>
-        <p className="mt-8 text-gray-500 mb-3 ">
-          Does your Home have a parking spot ?
-        </p>
-        <div className="flex">
-          <button
-            type="button"
-            id="parking"
-            value={true}
-            onClick={onChange}
-            className={`mr-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
-              !parking
-                ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
-            }`}
-          >
-            Yes
-          </button>
-          <button
-            type="button"
-            id="parking"
-            value={false}
-            onClick={onChange}
-            className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
-              parking
-                ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
-            }`}
-          >
-            no
-          </button>
-        </div>
-        <p className="mt-8 text-gray-500 mb-2  ">Is it furnished ?</p>
-        <div className="flex">
-          <button
-            type="button"
-            id="furnished"
-            value={true}
-            onClick={onChange}
-            className={`mr-3 px-7 py-3 rounded font-medium text-sm uppercase  transition duration-150 ease-in-out w-full ${
-              !furnished
-                ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
-            }`}
-          >
-            yes
-          </button>
-          <button
-            type="button"
-            id="furnished"
-            value={false}
-            onClick={onChange}
-            className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
-              furnished
-                ? "bg-white text-black border-2 border-gray-200"
-                : "bg-custom-red text-white"
-            }`}
-          >
-            no
-          </button>
-        </div>
-        <div className="flex space-x-6 mt-12 justify-start mb-6">
-          <button
-            className="mb-6 px-3 py-2 w-1/2 bg-gray-200 border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-            onClick={prevStep}
-          >
-            <GrFormPrevious className="inline" /> Previous
-          </button>
-          <button
-            className="mb-6 px-3 py-2 w-1/2 bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-            onClick={nextStep}
-          >
-            Next
-            <GrFormNext className="inline" />
-          </button>
-        </div>
-      </div>
-    );
-  };
-  const renderStep3 = () => {
-    return (
-      <div>
-        <h1 className="text-3xl mb-12"> Pricing details for your listing.</h1>
-        <div className="flex items-center mb-6">
-          <div className="">
-            <p className="text-gray-500 mb-2 ">Set your desired price</p>
-            <div className="flex w-full justify-center items-center space-x-6">
-              <input
-                type="number"
-                id="regularPrice"
-                value={regularPrice}
-                onChange={onChange}
-                min="50"
-                max="400000000"
-                required
-                className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
-              />
-              {type === "rent" && (
-                <div className="">
-                  <p className="text-md w-full whitespace-nowrap">DH / Month</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+ const renderStep1 = () => {
+   return (
+     <div>
+       <h1 className="text-2xl md:text-3xl mb-12">
+         Where is your place located ?
+       </h1>
+       <p className=" text-gray-500 mb-2">
+         Type the exact address of your home.
+       </p>
+       <input
+         type="address"
+         id="address"
+         value={address}
+         onChange={onChange}
+         placeholder=""
+         className="w-full mb-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-2 border-gray-300 rounded transition ease-in-out"
+       />
+       <p className=" text-gray-500 mb-2">
+         Click and drop the pin on the map to select the location.
+       </p>
+       <div className="h-[400px] bg-gray-200">
+         <ReactMapGL
+           {...viewport}
+           mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
+           mapStyle="mapbox://styles/mohamedmakdad/clsqz4sct00xn01pf8o9vg38g"
+           onMove={(evt) => setViewport(evt.viewport)}
+           onClick={handleMapClick}
+         >
+           {formData.latitude !== 0 && formData.longitude !== 0 && (
+             <Marker
+               latitude={formData.latitude}
+               longitude={formData.longitude}
+               offsetTop={-20}
+               offsetLeft={-10}
+               anchor="bottom" // Set the anchor point to the bottom
+             >
+               <img
+                 src="/MyPin.svg"
+                 alt="Pin"
+                 style={{ width: "40px", height: "40px" }}
+               />
+             </Marker>
+           )}
+           <div style={{ position: "absolute", right: 10, top: 10 }}>
+             <NavigationControl />
+           </div>
+         </ReactMapGL>{" "}
+       </div>
 
-        <div className="flex space-x-6 mt-12 justify-start mb-6">
-          <button
-            className="mb-6 px-3 py-2 w-1/2 bg-gray-200 border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-            onClick={prevStep}
-          >
-            <GrFormPrevious className="inline" /> Previous
-          </button>
-          <button
-            className="mb-6 px-3 py-2 w-1/2 bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-            onClick={nextStep}
-          >
-            Next
-            <GrFormNext className="inline" />
-          </button>
-        </div>
-      </div>
-    );
-  };
-  const renderStep4 = () => {
-    return (
-      <div>
-        <h1 className="text-3xl mb-12">Describe your property.</h1>
-        <p className="text-gray-500 mb-2 ">Share details about your property</p>
-        <textarea
-          type="text"
-          id="description"
-          value={description}
-          onChange={onChange}
-          placeholder="..."
-          required
-          className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black mb-6"
-        />
-        <div className="flex space-x-6 mt-12 justify-start mb-6">
-          <button
-            className="mb-6 px-3 py-2 w-1/2 bg-gray-200 border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-            onClick={prevStep}
-          >
-            <GrFormPrevious className="inline" /> Previous
-          </button>
-          <button
-            className="mb-6 px-3 py-2 w-1/2 bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-            onClick={nextStep}
-          >
-            Next
-            <GrFormNext className="inline" />
-          </button>
-        </div>
-      </div>
-    );
-  };
-const renderStep5 = () => {
-const handleFileChange = async (files) => {
-  const validFiles = [];
+       <button
+         className="mb-6 px-3 py-2 mt-6 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+         onClick={nextStep}
+       >
+         Confirm
+       </button>
+     </div>
+   );
+ };
 
-  for (const file of files) {
-    const image = new Image();
-    image.src = URL.createObjectURL(file.file);
+ const renderStep2 = () => {
+   const isLand = listingType === "land";
+   const isOffice = listingType === "office" || listingType === "commercial";
+   const isPlace =
+     listingType === "apartment" ||
+     listingType === "villa" ||
+     listingType === "riad" ||
+     listingType === "farmhouse";
+   return (
+     <div>
+       <h1 className="flex gap-2 text-2xl md:text-3xl  mb-12">
+         <IoIosArrowBack
+           className="my-1 cursor-pointer hover:opacity-70"
+           onClick={prevStep}
+         />
+         Info about your listing.
+       </h1>
+       <p className="text-gray-500 mb-2 ">Do you want to sell or rent ?</p>
+       <div className="flex">
+         <button
+           type="button"
+           id="type"
+           value="sale"
+           onClick={onChange}
+           className={`mr-3 px-7 py-3 font-medium text-sm uppercase  rounded transition duration-150 ease-in-out w-full ${
+             type === "rent"
+               ? "bg-white text-black border-2 border-gray-200"
+               : "bg-custom-black text-white"
+           }`}
+         >
+           sell
+         </button>
+         <button
+           type="button"
+           id="type"
+           value="rent"
+           onClick={onChange}
+           className={`mr-3 px-7 py-3 font-medium text-sm uppercase  rounded transition duration-150 ease-in-out w-full ${
+             type === "sale"
+               ? "bg-white text-black border-2 border-gray-200"
+               : "bg-custom-black text-white"
+           }`}
+         >
+           rent
+         </button>
+       </div>
+       <p className="mt-8 text-gray-500 mb-2 ">What's your listing type ?</p>
+       <select
+         id="listingType"
+         value={listingType}
+         onChange={onChange}
+         className="w-full  px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+       >
+         <option value="villa">Villa</option>
+         <option value="apartment">Apartment</option>
+         <option value="riad">Riad</option>
+         <option value="farmhouse">Farmhouse</option>
+         <option value="commercial">Commercial</option>
+         <option value="office">Office</option>
+         <option value="land">Land</option>
+       </select>
+       {isLand && (
+         <div className="flex-1">
+           <p className="mt-8 text-gray-500 mb-2 ">Size</p>
+           <div className="flex w-full justify-center items-center space-x-6">
+             <div className="relative w-full">
+               <input
+                 type="number"
+                 id="size"
+                 value={size}
+                 onChange={onChange}
+                 min="0"
+                 required
+                 className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+               />
+               <div className="absolute right-4 sm:right-10 top-1/2 transform -translate-y-1/2 text-md whitespace-nowrap">
+                 m²
+               </div>
+             </div>
+           </div>
+         </div>
+       )}
 
-    await new Promise((resolve) => {
-      image.onload = () => {
-        const aspectRatio = image.width / image.height;
-        const tolerance = 0.1; // Adjust the tolerance level as needed
+       {isOffice && (
+         <div className="">
+           <div className="">
+             <p className="mt-8 text-gray-500 mb-2 ">Size</p>
+             <div className="flex w-full justify-center items-center space-x-6">
+               <div className="relative w-full">
+                 <input
+                   type="number"
+                   id="size"
+                   value={size}
+                   onChange={onChange}
+                   min="0"
+                   required
+                   className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+                 />
+                 <div className="absolute right-4 sm:right-10 top-1/2 transform -translate-y-1/2 text-md whitespace-nowrap">
+                   m²
+                 </div>
+               </div>
+             </div>
+           </div>
+           <div className="">
+             <p className="mt-8 text-gray-500 mb-3 ">
+               Does your place have a parking spot ?
+             </p>
+             <div className="flex ">
+               <button
+                 type="button"
+                 id="parking"
+                 value={true}
+                 onClick={onChange}
+                 className={`mr-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                   !parking
+                     ? "bg-white text-black border-2 border-gray-200"
+                     : "bg-custom-black text-white"
+                 }`}
+               >
+                 Yes
+               </button>
+               <button
+                 type="button"
+                 id="parking"
+                 value={false}
+                 onClick={onChange}
+                 className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                   parking
+                     ? "bg-white text-black border-2 border-gray-200"
+                     : "bg-custom-black text-white"
+                 }`}
+               >
+                 No
+               </button>
+             </div>
+           </div>
+         </div>
+       )}
+       {isPlace && (
+         <div>
+           <div className="flex space-x-6 mb-6">
+             <div className="flex-1">
+               <p className="mt-8 text-gray-500 mb-2 ">Year built </p>
+               <select
+                 id="yearBuilt"
+                 value={yearBuilt}
+                 onChange={onChange}
+                 className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+               >
+                 {/* Populate options for yearBuilt */}
+                 {Array.from({ length: 126 }, (_, index) => (
+                   <option key={index} value={2025 - index}>
+                     {2025 - index}
+                   </option>
+                 ))}
+               </select>
+             </div>
+             <div className="flex-1">
+               <p className="mt-8 text-gray-500 mb-2 ">Size</p>
+               <div className="flex w-full justify-center items-center space-x-6">
+                 <div className="relative w-full">
+                   <input
+                     type="number"
+                     id="size"
+                     value={size}
+                     onChange={onChange}
+                     min="0"
+                     required
+                     className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+                   />
+                   <div className="absolute right-4 sm:right-10 top-1/2 transform -translate-y-1/2 text-md whitespace-nowrap">
+                     m²
+                   </div>
+                 </div>
+               </div>
+             </div>
+           </div>
 
-        if (Math.abs(aspectRatio - 16 / 9) <= tolerance) {
-          validFiles.push(file.file);
-        }
+           <div className="flex space-x-6 mb-6">
+             <div>
+               <p className="text-gray-500 mb-2  ">Beds</p>
+               <input
+                 type="number"
+                 id="bedrooms"
+                 value={bedrooms}
+                 onChange={onChange}
+                 min="1"
+                 max="50"
+                 required
+                 className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+               />
+             </div>
+             <div>
+               <p className="text-gray-500 mb-2  ">Baths</p>
+               <input
+                 type="number"
+                 id="bathrooms"
+                 value={bathrooms}
+                 onChange={onChange}
+                 min="1"
+                 max="50"
+                 required
+                 className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+               />
+             </div>
+           </div>
+           <p className="mt-8 text-gray-500 mb-3 ">
+             Does your Home have a parking spot ?
+           </p>
+           <div className="flex">
+             <button
+               type="button"
+               id="parking"
+               value={true}
+               onClick={onChange}
+               className={`mr-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                 !parking
+                   ? "bg-white text-black border-2 border-gray-200"
+                   : "bg-custom-black text-white"
+               }`}
+             >
+               Yes
+             </button>
+             <button
+               type="button"
+               id="parking"
+               value={false}
+               onClick={onChange}
+               className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                 parking
+                   ? "bg-white text-black border-2 border-gray-200"
+                   : "bg-custom-black text-white"
+               }`}
+             >
+               no
+             </button>
+           </div>
+           <p className="mt-8 text-gray-500 mb-2  ">Is it furnished ?</p>
+           <div className="flex">
+             <button
+               type="button"
+               id="furnished"
+               value={true}
+               onClick={onChange}
+               className={`mr-3 px-7 py-3 rounded font-medium text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                 !furnished
+                   ? "bg-white text-black border-2 border-gray-200"
+                   : "bg-custom-black text-white"
+               }`}
+             >
+               yes
+             </button>
+             <button
+               type="button"
+               id="furnished"
+               value={false}
+               onClick={onChange}
+               className={`ml-3 px-7 py-3 font-medium rounded text-sm uppercase  transition duration-150 ease-in-out w-full ${
+                 furnished
+                   ? "bg-white text-black border-2 border-gray-200"
+                   : "bg-custom-black text-white"
+               }`}
+             >
+               no
+             </button>
+           </div>
+         </div>
+       )}
+       <div className="flex space-x-6 mt-12 justify-start mb-6">
+         <button
+           className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+           onClick={nextStep}
+         >
+           Confirm
+         </button>
+       </div>
+     </div>
+   );
+ };
 
-        resolve();
-      };
-    });
-  }
+ const renderStep3 = () => {
+   return (
+     <div>
+       <h1 className="flex gap-2 text-2xl md:text-3xl  mb-12">
+         {" "}
+         <IoIosArrowBack
+           className="mt-1 cursor-pointer hover:opacity-70"
+           onClick={prevStep}
+         />{" "}
+         Pricing details for your listing.
+       </h1>
+       <div className="flex items-center mb-6">
+         <div className="">
+           <p className="text-gray-500 mb-2 ">Set your desired price</p>
+           <div className="flex w-full justify-center items-center space-x-6">
+             <input
+               type="number"
+               id="regularPrice"
+               value={regularPrice}
+               onChange={onChange}
+               min="50"
+               max="400000000"
+               required
+               className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black text-center"
+             />
+             {type === "rent" && (
+               <div className="">
+                 <p className="text-md w-full whitespace-nowrap">DH / Month</p>
+               </div>
+             )}
+           </div>
+         </div>
+       </div>
 
-  if (validFiles.length < files.length) {
-    toast.error("Images should have an aspect ratio close to 16:9.");
-  }
+       <div className="flex space-x-6 mt-12 justify-start mb-6">
+         <button
+           className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+           onClick={nextStep}
+         >
+           Confirm
+         </button>
+       </div>
+     </div>
+   );
+ };
+ const renderStep4 = () => {
+   return (
+     <div>
+       <h1 className="flex gap-2 text-2xl md:text-3xl mb-12">
+         {" "}
+         <IoIosArrowBack
+           className="mt-1 cursor-pointer hover:opacity-70"
+           onClick={prevStep}
+         />{" "}
+         Describe your property details.
+       </h1>
+       <p className="text-gray-500 mb-2 ">Share details about your property</p>
+       <textarea
+         type="text"
+         id="description"
+         value={description}
+         onChange={onChange}
+         placeholder="..."
+         required
+         className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-black mb-6"
+       />
+       <div className="flex space-x-6 mt-12 justify-start mb-6">
+         <button
+           className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+           onClick={nextStep}
+         >
+           Confirm
+         </button>
+       </div>
+     </div>
+   );
+ };
+ const renderStep5 = () => {
+   const handleFileChange = async (files) => {
+     const validFiles = [];
 
-  setImages(validFiles);
-};
+     for (const file of files) {
+       const image = new Image();
+       image.src = URL.createObjectURL(file.file);
+
+       await new Promise((resolve) => {
+         image.onload = () => {
+           const aspectRatio = image.width / image.height;
+           const tolerance = 0.1; // Adjust the tolerance level as needed
+
+           if (Math.abs(aspectRatio - 16 / 9) <= tolerance) {
+             validFiles.push(file.file);
+           }
+
+           resolve();
+         };
+       });
+     }
+
+     if (validFiles.length < files.length) {
+       toast.error("Images should have an aspect ratio close to 16:9.");
+     }
+
+     setImages(validFiles);
+   };
+
+   // Custom options for FilePond
+   const filePondOptions = {
+     allowMultiple: true,
+     acceptedFileTypes: ["image/*"],
+     maxFiles: 6,
+     imagePreviewHeight: 100, // Set your desired height for each image preview
+     imageCropAspectRatio: "16:9", // Crop images to a 16:9 aspect ratio
+   };
+
+   return (
+     <div>
+       <h1 className=" flex gap-2 text-2xl md:text-3xl  mb-4">
+         {" "}
+         <IoIosArrowBack
+           className="mt-1 cursor-pointer hover:opacity-70"
+           onClick={prevStep}
+         />{" "}
+         Upload images of your place.
+       </h1>
+       <div className="mb-6">
+         <p className="text-gray-600">
+           The first image will be the cover (max 6)
+         </p>
+         <FilePond
+           files={images}
+           onupdatefiles={handleFileChange}
+           {...filePondOptions}
+         />
+       </div>
+       <button
+         type="submit"
+         className="mb-6 w-full px-7 py-3 bg-custom-red text-white font-medium text-sm uppercase rounded shadow-md hover:opacity-70 hover:shadow-lg focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
+       >
+         Create Listing
+       </button>
+     </div>
+   );
+ };
 
 
 
-
-  // Custom options for FilePond
-  const filePondOptions = {
-    allowMultiple: true,
-    acceptedFileTypes: ["image/*"],
-    maxFiles: 6,
-    imagePreviewHeight: 100, // Set your desired height for each image preview
-    imageCropAspectRatio: "16:9", // Crop images to a 16:9 aspect ratio
-  };
 
   return (
-    <div>
-      <h1 className="text-3xl mb-6">Upload images of your place.</h1>
-      <div className="mb-6">
-        <p className="text-lg">Images</p>
-        <p className="text-gray-600">
-          The first image will be the cover (max 6)
-        </p>
-        <FilePond
-          files={images}
-          onupdatefiles={handleFileChange}
-          {...filePondOptions}
-        />
-      </div>
-      <button
-        type="submit"
-        className="mb-6 w-full px-7 py-3 bg-custom-red text-white font-medium text-sm uppercase rounded shadow-md hover:opacity-70 hover:shadow-lg focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-      >
-        Create Listing
-      </button>
-      <button
-        className="mb-6 px-3 py-2 w-full bg-white border-2 border-black text-black rounded-md shadow-md hover:opacity-70 hover:bg-black hover:text-white focus:bg-black focus:shadow-lg active:bg-black active:shadow-lg transition duration-150 ease-in-out"
-        onClick={prevStep}
-      >
-        <GrFormPrevious className="inline" /> Previous
-      </button>
-    </div>
-  );
-};
-
-
-
-  return (
-    <AgentGuard>
       <main>
         <form
           onSubmit={onSubmit}
@@ -689,7 +827,6 @@ const handleFileChange = async (files) => {
           {renderStepContent()}
         </form>
       </main>
-    </AgentGuard>
   );
 };
 export default CreateListingPopUp;

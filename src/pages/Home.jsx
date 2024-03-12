@@ -46,6 +46,7 @@ export default function Home() {
         const q = query(
           listingsRef,
           where("type", "==", "rent"),
+          where("status", "==", "approved"),
           orderBy("timestamp", "desc"),
           limit(4)
         );
@@ -76,6 +77,7 @@ export default function Home() {
         const q = query(
           listingsRef,
           where("type", "==", "sale"),
+          where("status", "==", "approved"),
           orderBy("timestamp", "desc"),
           limit(4)
         );
@@ -105,6 +107,7 @@ export default function Home() {
         const q = query(
           listingsRef,
           orderBy("timestamp", "desc"),
+          where("status", "==", "approved"),
           limit(10)
         );
         const querySnap = await getDocs(q);
@@ -195,7 +198,7 @@ export default function Home() {
           </div>
         )}{" "}
       </div>
-      <div className="hidden md:block lg:hidden mx-auto pt-4 pb-4 space-y-6 max-w-6xl">
+      <div className="hidden md:block lg:hidden mx-auto pt-4 pb-4 space-y-6 max-w-3xl">
         {Listings && Listings.length > 0 && (
           <div className="m-6 mb-6">
             <div className="flex justify-between my-4 text-2xl">
@@ -234,7 +237,7 @@ export default function Home() {
           </div>
         )}{" "}
       </div>
-      <div className="hidden sm:block md:hidden mx-auto pt-4 pb-4 space-y-6 max-w-6xl">
+      <div className="hidden sm:block md:hidden mx-auto pt-4 pb-4 space-y-6 max-w-2xl">
         {Listings && Listings.length > 0 && (
           <div className="m-6 mb-6">
             <div className="flex justify-between my-4 text-2xl">
@@ -275,7 +278,7 @@ export default function Home() {
       </div>
       <div className="block sm:hidden w-full">
         {Listings && Listings.length > 0 && (
-          <div className="m-6 mb-8">
+          <div className="m-6 mb-8 mx-auto max-w-xs">
             <div className="flex px-2 justify-between my-2 text-xl">
               <div>
                 <p>New offers on Beytty.</p>
@@ -294,7 +297,7 @@ export default function Home() {
                 />
               </div>
             </div>
-            <div className="max-w-6xl">
+            <div className="mx-auto max-w-xs">
               <Slider
                 ref={sliderRef} // Attach the ref to the Slider component
                 infinite={true}
@@ -331,13 +334,13 @@ export default function Home() {
                 alt=""
               />
               <h1 className="text-2xl mb-8 font-semibold">Rent a Home.</h1>
-              <p className="text-center">
+              <p className="text-center mb-4">
                 We're making it easy for you online from finding your dream
                 rental to applying for rent hassle-free.
               </p>
               <button
                 type="button"
-                class="mt-8 mb-8 border-2 border-red-500 rounded text-red-500 hover:bg-red-600 hover:text-white px-4 py-2 transition duration-300"
+                class="mt-auto mb-8 border-2 border-red-500 rounded text-red-500 hover:bg-red-600 hover:text-white px-4 py-2 transition duration-300"
                 onClick={() => navigateToResults("rent")}
               >
                 Find Rentals
@@ -354,13 +357,13 @@ export default function Home() {
                 alt=""
               />
               <h1 className="text-2xl mb-8 font-semibold">Buy a Home.</h1>
-              <p className="text-center">
+              <p className="text-center mb-4">
                 Discover your perfect space through an extensive list of unique
                 listings you won't find elsewhere
               </p>
               <button
                 type="button"
-                class="mt-8 mb-8 border-2 border-red-500 rounded text-red-500 hover:bg-red-600 hover:text-white px-4 py-2 transition duration-300"
+                class="mt-auto mb-8 border-2 border-red-500 rounded text-red-500 hover:bg-red-600 hover:text-white px-4 py-2 transition duration-300"
                 à
                 onClick={() => navigateToResults("sale")}
               >
@@ -375,13 +378,13 @@ export default function Home() {
                 alt=""
               />
               <h1 className="text-2xl mb-8 font-semibold">Sell a Home.</h1>
-              <p className="text-center">
+              <p className="text-center mb-4">
                 No matter what approach you choose to sell or rent your place,
                 we're here to help you achieve a successful sale.
               </p>
               <button
                 type="button"
-                class="mt-8 mb-8 border-2 border-red-500 rounded text-red-500 hover:bg-red-600 hover:text-white px-4 py-2 transition duration-300"
+                class="mt-auto mb-8 border-2 border-red-500 rounded text-red-500 hover:bg-red-600 hover:text-white px-4 py-2 transition duration-300"
               >
                 Sell a Home
               </button>
