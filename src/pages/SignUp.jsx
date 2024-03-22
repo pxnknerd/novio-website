@@ -18,35 +18,45 @@ export default function SignUp() {
     firstName: "",
     lastName: "",
     email: "",
-    phoneNumber: "+212",
+    phoneNumber: "",
     password: "",
   }); 
   const [emailError, setEmailError] = useState("");
-  const [phoneNumberError, setPhoneNumberError] = useState("");
+  const [selectedCountryCode, setSelectedCountryCode] = useState("+212");
   const [passwordError, setPasswordError] = useState("");
-  const isValidMoroccanPhoneNumber = (number) => {
-    const moroccanPhoneNumberRegex = /^\+212[5-9]\d{8}$/;
-    return moroccanPhoneNumberRegex.test(number);
-  };
+  const isValidPhoneNumber = (number) => {
+  const phoneNumberRegex = /^\+\d{1,4}\d{1,14}$/;
+   return phoneNumberRegex.test(number);
+ };
   const { firstName, lastName, email, phoneNumber, password } = formData;
+
   const handleSignUpAsAgentClick = () => {
     // Navigate to the AgentSignUp page when clicked
     navigate("/agent-sign-up");
   };
-   const onPhoneNumberChange = (e) => {
-     const remainingPart = e.target.value.replace(/^\+212/, "");
-     setFormData((prevState) => ({
-       ...prevState,
-       phoneNumber: `+212${remainingPart}`,
-     }));
-   };
-  const navigate = useNavigate()
+
+const onPhoneNumberChange = (e) => {
+  const enteredNumber = e.target.value;
+  setFormData((prevState) => ({
+    ...prevState,
+    phoneNumber: enteredNumber,
+  }));
+};
+
+ const onCountryCodeChange = (e) => {
+   setSelectedCountryCode(e.target.value);
+ };
+
+  const navigate = useNavigate();
+  
   function onChange(e) {
     setFormData((prevState)=>({
       ...prevState, 
       [e.target.id]: e.target.value,
     }))
   }
+
+
   async function onSubmit(e){
     e.preventDefault();
     setEmailError("");
@@ -54,13 +64,6 @@ export default function SignUp() {
     // Regular expression to extract domain from email
     const domainRegex = /@([a-zA-Z0-9.-]+)$/;
     const match = email.match(domainRegex);
-
-    // Validate Moroccan phone number format
-    if (!isValidMoroccanPhoneNumber(formData.phoneNumber)) {
-      // Display a message or take appropriate action (e.g., toast)
-      setPhoneNumberError("Invalid Moroccan phone number format");
-      return;
-    }
 
     if (!match) {
       setEmailError("Invalid email address. Please enter a valid email.");
@@ -95,6 +98,8 @@ export default function SignUp() {
         password
       );
 
+   
+
       const user = userCredential.user;
       // Set initial profile picture
       const initialProfilePicture = process.env.PUBLIC_URL + "/anonym.png";
@@ -113,6 +118,9 @@ export default function SignUp() {
 
       // Send email verification
       await sendEmailVerification(user);
+
+          const completePhoneNumber = `${selectedCountryCode}${phoneNumber}`;
+          formDataCopy.phoneNumber = completePhoneNumber;
 
       // Save additional user data to Firestore
       await setDoc(doc(db, "users", user.uid), formDataCopy);
@@ -187,19 +195,29 @@ export default function SignUp() {
               placeholder="Email address"
               className="w-full mt-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
             />
-              {emailError && (
-                <p className="text-red-500 text-sm mb-2">{emailError}</p>
-              )}
-            <input
-              type="tel"
-              id="phoneNumber"
-              value={phoneNumber}
-              onChange={onPhoneNumberChange}
-              className="w-full mt-6 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
-            />
-            {phoneNumberError && (
-              <p className="text-red-500 text-sm mb-2">{phoneNumberError}</p>
+            {emailError && (
+              <p className="text-red-500 text-sm mb-2">{emailError}</p>
             )}
+            <div className="flex mt-6">
+              <select
+                value={selectedCountryCode}
+                onChange={onCountryCodeChange}
+                className="w-1/4 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
+              >
+                <option value="+212">+212</option>
+                <option value="+33">+33</option>
+                <option value="+32">+32</option>
+                <option value="+34">+34</option>
+                <option value="+351">+351</option>
+              </select>
+              <input
+                type="tel"
+                id="phoneNumber"
+                value={phoneNumber}
+                onChange={onPhoneNumberChange}
+                className="w-3/4 ml-2 px-4 py-2 text-md color-grey-700 shadow-md bg-white border-gray-300 rounded transition ease-in-out"
+              />
+            </div>
             <div className="relative mt-6 ">
               <input
                 type={showPassword ? "text" : "password"}

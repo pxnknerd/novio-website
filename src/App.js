@@ -26,8 +26,7 @@ import SecondHeader from "./components/SecondHeader";
 import Sell from "./pages/Sell";
 import DiyListing from "./pages/DiyListing";
 import AgentFinder from "./pages/AgentFinder";
-import Profiled from "./pages/Profiled";
-
+import AgentProfile from "./pages/AgentProfile";
 
 function App() {
 
@@ -41,9 +40,6 @@ function App() {
           <Route path="/profile" element={<PrivateRoute />}>
             <Route path="/profile" element={<Profile />} />
           </Route>
-          <Route path="/profiled" element={<PrivateRoute />}>
-            <Route path="/profiled" element={<Profiled />} />
-          </Route>
           <Route path="/sign-in" element={<SignIn />} />
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/agent-sign-up" element={<AgentSignUp />} />
@@ -52,6 +48,7 @@ function App() {
             <Route path="/diylisting" element={<DiyListing />} />
           </Route>{" "}
           <Route path="/help" element={<Help />} />
+          <Route path="/agent/:agentId" element={<AgentProfile />} />
           <Route
             path="/email-verification"
             element={<EmailVerificationPage />}

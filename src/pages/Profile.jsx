@@ -20,7 +20,6 @@ import { FiEdit } from "react-icons/fi";
 import { TbEdit } from "react-icons/tb";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { PiSignOutBold } from "react-icons/pi";
 
@@ -34,6 +33,8 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
+  const [aboutMe, setAboutMe] = useState("");
+
 
   const [formData, setFormData] = useState({
     firstName: auth.currentUser.displayName.split(" ")[0] || "",
@@ -156,6 +157,7 @@ export default function Profile() {
         lastName,
         agency,
         phoneNumber,
+        aboutMe,
       });
 
       toast.success("Profile details updated");
@@ -214,7 +216,7 @@ export default function Profile() {
     if (isAgentUser) {
       return (
         <div className="flex flex-col justify-center items-center w-full mx-auto">
-          <div className="flex w-full bg-gray-100 h-40" ></div>
+          <div className="flex w-full bg-gray-100 h-40"></div>
           <div className="flex relative -top-10">
             <div className="relative flex items-end ">
               <img
@@ -330,6 +332,18 @@ export default function Profile() {
                     disabled={!changeDetail}
                     onChange={onChange}
                     fullWidth
+                    variant="outlined"
+                    margin="normal"
+                  />
+                  <TextField
+                    id="aboutMe"
+                    label="About Me"
+                    value={aboutMe}
+                    disabled={!changeDetail}
+                    onChange={(e) => setAboutMe(e.target.value)}
+                    fullWidth
+                    multiline
+                    rows={4}
                     variant="outlined"
                     margin="normal"
                   />

@@ -14,19 +14,32 @@ export default function Contact({ userRef, listing }) {
   );
   const [phoneNumber, setPhoneNumber] = useState("");
   const [currentStep, setCurrentStep] = useState("initial");
-  const [callButtonText, setCallButtonText] = useState("Call agent");
+  const [callButtonText, setCallButtonText] = useState("Call");
+  const [listingType, setListingType] = useState("");
 
 
   useEffect(() => {
     async function getLandlord() {
-      const docRef = doc(db, "agents", userRef);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setLandlord(docSnap.data());
+      const agentDocRef = doc(db, "agents", userRef);
+      const userDocRef = doc(db, "users", userRef);
+
+      const agentDocSnap = await getDoc(agentDocRef);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (agentDocSnap.exists()) {
+        setLandlord(agentDocSnap.data());
+        setListingType("Listed by agent");
+        setCallButtonText("Call Agent"); 
+      } else if (userDocSnap.exists()) {
+        setLandlord(userDocSnap.data());
+        setListingType("Listed by owner");
+        setCallButtonText("Call Owner");
+
       } else {
         toast.error("Could not get landlord data");
       }
     }
+
     getLandlord();
   }, [userRef]);
 
@@ -57,16 +70,18 @@ export default function Contact({ userRef, listing }) {
     }?text=${encodeURIComponent(whatsappMessage)}`;
     window.location.href = whatsappLink;
   }
-   function handleCallAgent() {
-     if (callButtonText === "Call agent") {
-       // If the button text is "Call Agent", change it to display the phone number
-       setCallButtonText(`Call ${landlord.phoneNumber}`);
-     } else {
-       // If the button text is already displaying the phone number, initiate the call
-       window.location.href = `tel:${landlord.phoneNumber}`;
-     }
+ function handleCall() {
+   if (callButtonText === "Call Agent" || callButtonText === "Call Owner") {
+     // If the button text is "Call Agent" or "Call Owner", change it to display the phone number
+     setCallButtonText(landlord.phoneNumber);
+   } else {
+     // If the button text is a phone number, initiate the call
+     window.location.href = `tel:${landlord.phoneNumber}`;
    }
+ }
 
+
+   
   return (
     <>
       <div className=" w-full">
@@ -81,16 +96,20 @@ export default function Contact({ userRef, listing }) {
               <div className="flex flex-col space-y-4">
                 <div className=" justify-center mx-auto space-x-2">
                   <img
-                    src={landlord.photoURL || "/default-profile-picture.jpg"}
+                    src={landlord.photoURL ? landlord.photoURL : "/anonym.png"}
                     alt="Landlord Profile"
                     className="h-10 w-10 mb-4 rounded-full justify-center mx-auto object-cover"
                   />
-                  <p>Listed by {""}{`${landlord.firstName} ${landlord.lastName}`}</p>
+                  <p>
+                    {""}
+                    {`${landlord.firstName} ${landlord.lastName}`}
+                  </p>
+                  {listingType && <p className="text-gray-400 mx-auto justify-center flex  ">{listingType}</p>}
                 </div>{" "}
                 <button
-                  className="bg-custom-black text-white rounded-md py-3 md:text-xl"
+                  className="bg-custom-red text-white rounded-md py-3 md:text-xl"
                   type="button"
-                  onClick={handleCallAgent}
+                  onClick={handleCall}
                 >
                   {callButtonText}
                 </button>
@@ -115,7 +134,7 @@ export default function Contact({ userRef, listing }) {
                     value={phoneNumber}
                     onChange={onChange}
                     placeholder="Enter your phone number"
-                    className="w-full py-2 text-md text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-slate-600"
+                    className="w-full py-2 text-md text-gray-700 bg-gray-100 border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-slate-600"
                   />
                 </div>
                 <p>Message</p>
@@ -126,18 +145,18 @@ export default function Contact({ userRef, listing }) {
                     rows="2"
                     value={message}
                     onChange={onChange}
-                    className="w-full h-[250px] py-2 text-md text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-slate-600"
+                    className="w-full h-[250px] py-2 text-md text-gray-700 bg-gray-100 border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-slate-600"
                   ></textarea>
                 </div>
                 <button
-                  className="block w-full bg-custom-black border-2 text-white rounded-md py-3 md:text-xl"
+                  className="block w-full bg-custom-red border-2 text-white rounded-md py-3 md:text-xl"
                   type="button"
                   onClick={handleSendEmail}
                 >
                   Send Email
                 </button>
                 <button
-                  className="block w-full mt-2 border-green-500 hover:border-green-700 hover:text-green-700 border-2 text-green-500 rounded-md py-3 md:text-xl"
+                  className="block w-full mt-2 border-black hover:border-black hover:bg-gray-100 border-2 text-black rounded-md py-3 md:text-xl"
                   type="button"
                   onClick={handleSendWhatsApp}
                 >

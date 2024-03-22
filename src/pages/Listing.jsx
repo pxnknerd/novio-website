@@ -159,8 +159,8 @@ export default function Listing() {
         </div>
       </div>
       {isPopupOpen && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-70 flex justify-center items-center z-50">
-          <div className="bg-black md:bg-black bg-opacity-50 md:bg-opacity-50 max-w-screen-md">
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-80 flex justify-center items-center z-50">
+          <div className="max-w-screen-xl">
             <button
               className="absolute top-0 right-0 p-2 z-50"
               onClick={togglePopup}

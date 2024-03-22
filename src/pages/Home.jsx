@@ -327,13 +327,7 @@ export default function Home() {
               className="cursor-pointer hover:shadow-2xl shadow-md px-8 items-center flex flex-col rounded-lg bg-white transition duration-300"
               onClick={() => navigateToResults("rent")}
             >
-              <img
-                className="w-full object-cover transition-scale duration-200 ease-in"
-                loading="lazy"
-                src={process.env.PUBLIC_URL + "/RentCard.png"}
-                alt=""
-              />
-              <h1 className="text-2xl mb-8 font-semibold">Rent a Home.</h1>
+              <h1 className="mt-8 text-2xl mb-8 font-semibold">Rent a Home.</h1>
               <p className="text-center mb-4">
                 We're making it easy for you online from finding your dream
                 rental to applying for rent hassle-free.
@@ -350,13 +344,7 @@ export default function Home() {
               className="cursor-pointer hover:shadow-2xl shadow-md px-8 items-center flex flex-col rounded-lg bg-white transition duration-300"
               onClick={() => navigateToResults("sale")}
             >
-              <img
-                className="w-full object-cover transition-scale duration-200 ease-in"
-                loading="lazy"
-                src={process.env.PUBLIC_URL + "/BuyCard.png"}
-                alt=""
-              />
-              <h1 className="text-2xl mb-8 font-semibold">Buy a Home.</h1>
+              <h1 className="mt-8 text-2xl mb-8 font-semibold">Buy a Home.</h1>
               <p className="text-center mb-4">
                 Discover your perfect space through an extensive list of unique
                 listings you won't find elsewhere
@@ -371,13 +359,7 @@ export default function Home() {
               </button>
             </li>
             <li className="cursor-pointer hover:shadow-2xl shadow-md px-8 items-center flex flex-col rounded-lg bg-white transition duration-300">
-              <img
-                className="w-full object-cover transition-scale duration-200 ease-in"
-                loading="lazy"
-                src={process.env.PUBLIC_URL + "/SellCard.png"}
-                alt=""
-              />
-              <h1 className="text-2xl mb-8 font-semibold">Sell a Home.</h1>
+              <h1 className="mt-8 text-2xl mb-8 font-semibold">Sell a Home.</h1>
               <p className="text-center mb-4">
                 No matter what approach you choose to sell or rent your place,
                 we're here to help you achieve a successful sale.
