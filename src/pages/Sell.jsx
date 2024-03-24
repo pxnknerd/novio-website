@@ -15,9 +15,9 @@ export default function Sell() {
           At Beytty, we empower you to list your property your way - Your
           property, your choice.
         </h2>
-        <ul className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2">
+        <ul className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2">
           <li
-            className="cursor-pointer hover:shadow-2xl shadow-md px-8 flex flex-col rounded-lg bg-white transition duration-300"
+            className="cursor-pointer hover:shadow-2xl shadow-lg px-8 flex flex-col rounded-lg bg-white transition duration-300"
             onClick={() => navigate("/diylisting")}
           >
             <div>
@@ -46,7 +46,7 @@ export default function Sell() {
             </button>
           </li>
           <li
-            className="cursor-pointer hover:shadow-2xl shadow-md px-8  flex flex-col rounded-lg bg-white transition duration-300"
+            className="cursor-pointer hover:shadow-2xl shadow-lg px-8  flex flex-col rounded-lg bg-white transition duration-300"
             onClick={() => navigate("/agentfinder")}
           >
             <h1 className="mt-8 text-2xl mb-8 font-semibold">
@@ -70,7 +70,7 @@ export default function Sell() {
             </button>
           </li>
           <li
-            className="cursor-pointer hover:shadow-2xl shadow-md px-8 flex flex-col rounded-lg bg-white transition duration-300"
+            className="cursor-pointer hover:shadow-2xl shadow-lg px-8 flex flex-col rounded-lg bg-white transition duration-300"
             onClick={() => navigate("/create-listing")}
           >
             <h1 className="mt-8 text-2xl mb-8 font-semibold">

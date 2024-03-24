@@ -22,8 +22,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import TextField from "@mui/material/TextField";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { PiSignOutBold } from "react-icons/pi";
-
-
+import { FormControl, InputLabel, MenuItem, Select, Chip } from "@mui/material";
 
 export default function Profile() {
   const auth = getAuth();
@@ -34,7 +33,55 @@ export default function Profile() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [aboutMe, setAboutMe] = useState("");
+  const [specialtiesDisabled, setSpecialtiesDisabled] = useState(true);
 
+  const [selectedSpecialties, setSelectedSpecialties] = useState([]);
+  const handleSpecialtiesChange = (event) => {
+    const selectedSpecialties = event.target.value;
+
+    if (selectedSpecialties.length <= 3) {
+      setSelectedSpecialties(selectedSpecialties);
+    } else {
+      toast.error("You can only choose up to three specialties");
+    }
+  };
+
+  const specialties = [
+    "Residential",
+    "Commercial",
+    "Luxury",
+    "Property",
+    "Investment",
+    "Construction",
+    "Vacation",
+    "Land",
+    "Foreclosures",
+    "Development",
+  ];
+  const handleDelete = (value) => {
+    setSelectedSpecialties((prevSelected) =>
+      prevSelected.filter((selected) => selected !== value)
+    );
+  };
+
+  const [languageDisabled, setLanguageDisabled] = useState(true);
+  const [selectedLanguage, setSelectedLanguage] = useState([]);
+  const handleLanguageChange = (event) => {
+    const selectedLanguage = event.target.value;
+
+    if (selectedLanguage.length <= 3) {
+      setSelectedLanguage(selectedLanguage);
+    } else {
+      toast.error("You can only choose up to three Language");
+    }
+  };
+
+  const language = ["Arabic", "French", "English", "Spanish", "Tamazight"];
+  const handleLanguageDelete = (value) => {
+    setSelectedLanguage((prevSelected) =>
+      prevSelected.filter((selected) => selected !== value)
+    );
+  };
 
   const [formData, setFormData] = useState({
     firstName: auth.currentUser.displayName.split(" ")[0] || "",
@@ -43,6 +90,7 @@ export default function Profile() {
     email: auth.currentUser.email,
     phoneNumber: "",
     photoURL: auth.currentUser.photoURL || "",
+    aboutMe: "",
   });
   const { firstName, lastName, agency, email, photoURL } = formData;
   const [isAgentUser, setIsAgentUser] = useState(false);
@@ -69,7 +117,12 @@ export default function Profile() {
         if (userDoc.exists()) {
           // Assuming the user status is stored as a field named "status"
           const status = userDoc.data().status;
+          const userData = userDoc.data();
+
           setUserStatus(status);
+          setAboutMe(userData.aboutMe || "");
+          setSelectedSpecialties(userData.specialties || []);
+          setSelectedLanguage(userData.language || []);
         } else {
           // Handle the case where the user document doesn't exist
           setUserStatus(null);
@@ -158,6 +211,8 @@ export default function Profile() {
         agency,
         phoneNumber,
         aboutMe,
+        specialties: selectedSpecialties,
+        language: selectedLanguage,
       });
 
       toast.success("Profile details updated");
@@ -277,12 +332,12 @@ export default function Profile() {
 
   return (
     <div className="max-w-6xl mx-auto rounded  h-full">
-      <section className="px-4 max-w-6xl mx-auto flex justify-center items-center  flex-col">
-        <div className="w-full mt-6 px-3">
+      <section className=" max-w-6xl mx-auto flex justify-center items-center  flex-col">
+        <div className="w-full ">
           <div className="mb-8">{renderGreeting()}</div>
 
           {/* My Profile Section */}
-          <div className="mb-4">
+          <div className="mb-4 px-4">
             <div
               className="flex items-center justify-between "
               onClick={() => setIsMyProfileOpen(!isMyProfileOpen)}
@@ -293,6 +348,8 @@ export default function Profile() {
                   onClick={() => {
                     changeDetail && onSubmit();
                     setChangeDetail((prevState) => !prevState);
+                    setSpecialtiesDisabled(false);
+                    setLanguageDisabled(false);
                   }}
                   className="text-black text-md md:text-xl capitalize hover:text-gray-300 transition ease-in-out duration-150 cursor-pointer"
                 >
@@ -347,6 +404,63 @@ export default function Profile() {
                     variant="outlined"
                     margin="normal"
                   />
+                  <div className="flex flex-col gap-2 md:flex-row">
+                  <FormControl fullWidth variant="outlined" margin="normal">
+                    <InputLabel id="specialties-label">Specialties</InputLabel>
+                    <Select
+                      labelId="specialties-label"
+                      id="specialties"
+                      multiple
+                      value={selectedSpecialties}
+                      onChange={handleSpecialtiesChange}
+                      renderValue={(selected) => (
+                        <div className="flex flex-wrap gap-2">
+                          {selected.map((value) => (
+                            <Chip
+                              key={value}
+                              label={value}
+                              onDelete={() => handleDelete(value)}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      disabled={!changeDetail || specialtiesDisabled}
+                    >
+                      {specialties.map((specialty) => (
+                        <MenuItem key={specialty} value={specialty}>
+                          {specialty}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <FormControl fullWidth variant="outlined" margin="normal">
+                    <InputLabel id="language-label">language</InputLabel>
+                    <Select
+                      labelId="language-label"
+                      id="language"
+                      multiple
+                      value={selectedLanguage}
+                      onChange={handleLanguageChange}
+                      renderValue={(selected) => (
+                        <div className="flex flex-wrap gap-2">
+                          {selected.map((value) => (
+                            <Chip
+                              key={value}
+                              label={value}
+                              onDelete={() => handleLanguageDelete(value)}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      disabled={!changeDetail || languageDisabled} // Disable if changeDetail is false or specialtiesDisabled is true
+                    >
+                      {language.map((language) => (
+                        <MenuItem key={language} value={language}>
+                          {language}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl></div>
                 </div>
               )}{" "}
               <TextField
@@ -392,7 +506,7 @@ export default function Profile() {
             {isMyListingsOpen && (
               <>
                 {!loading && listings.length > 0 && (
-                  <ul className=" grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 mt-6 mb-6">
+                  <ul className="gap-4 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 mt-6 mb-6">
                     {listings.map((listing) => (
                       <ListingItem
                         key={listing.id}
@@ -406,25 +520,8 @@ export default function Profile() {
                 )}
               </>
             )}
-            <div className="border-t flex-1 after:border-gray-300"></div>
           </div>
 
-          {/* Contact Us Section */}
-          <div className="mb-4">
-            <div
-              className="flex items-center justify-between"
-              onClick={() => setIsContactUsOpen(!isContactUsOpen)}
-            >
-              <h2 className="cursor-pointer text-lg  mb-2">Help</h2>
-              <FaAngleDown
-                className={`cursor-pointer transition-transform ease-in-out duration-200 transform ${
-                  isContactUsOpen ? "rotate-180" : ""
-                }`}
-              />
-            </div>
-            {isContactUsOpen && <p>Contact us content goes here...</p>}
-            <div className="border-t flex-1 after:border-gray-300"></div>
-          </div>
           <div className="flex justify-center sm:justify-start whitespace-nowrap mb-6  ">
             <p
               onClick={onLogout}

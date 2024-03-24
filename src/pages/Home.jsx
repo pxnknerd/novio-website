@@ -322,9 +322,9 @@ export default function Home() {
 
       <div className="bg-gray-50">
         <div className="mx-auto p-8  flex max-w-6xl ">
-          <ul className=" grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2">
+          <ul className=" grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2">
             <li
-              className="cursor-pointer hover:shadow-2xl shadow-md px-8 items-center flex flex-col rounded-lg bg-white transition duration-300"
+              className="cursor-pointer hover:shadow-2xl shadow-lg px-8 items-center flex flex-col rounded-lg bg-white transition duration-300"
               onClick={() => navigateToResults("rent")}
             >
               <h1 className="mt-8 text-2xl mb-8 font-semibold">Rent a Home.</h1>
@@ -341,7 +341,7 @@ export default function Home() {
               </button>
             </li>
             <li
-              className="cursor-pointer hover:shadow-2xl shadow-md px-8 items-center flex flex-col rounded-lg bg-white transition duration-300"
+              className="cursor-pointer hover:shadow-2xl shadow-lg px-8 items-center flex flex-col rounded-lg bg-white transition duration-300"
               onClick={() => navigateToResults("sale")}
             >
               <h1 className="mt-8 text-2xl mb-8 font-semibold">Buy a Home.</h1>
@@ -358,7 +358,7 @@ export default function Home() {
                 Search Homes
               </button>
             </li>
-            <li className="cursor-pointer hover:shadow-2xl shadow-md px-8 items-center flex flex-col rounded-lg bg-white transition duration-300">
+            <li className="cursor-pointer hover:shadow-2xl shadow-lg px-8 items-center flex flex-col rounded-lg bg-white transition duration-300">
               <h1 className="mt-8 text-2xl mb-8 font-semibold">Sell a Home.</h1>
               <p className="text-center mb-4">
                 No matter what approach you choose to sell or rent your place,

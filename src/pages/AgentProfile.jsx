@@ -36,7 +36,7 @@ export default function AgentProfile() {
    height: 400,
    latitude: 31.7917, // Latitude for Morocco
    longitude: -7.0926, // Longitude for Morocco
-   zoom: 6, // Adjust zoom level as needed
+   zoom: 5, // Adjust zoom level as needed
  });
  const [saleListingsCoordinates, setSaleListingsCoordinates] = useState([]);
  const [rentListingsCoordinates, setRentListingsCoordinates] = useState([]);
@@ -182,6 +182,7 @@ const handlePageChange = (page) => {
         </div>
         <div>
           <p className="mt-14 font-semibold text-2xl mb-4">About Me</p>
+          <p className="font-semibold">Specialties: {agentInfo.specialties.join(", ")}.</p>
           <p>{agentInfo.aboutMe}</p>
         </div>
         <div>
@@ -389,7 +390,7 @@ const handlePageChange = (page) => {
             <strong>Member Since:</strong> {memberSince}
           </p>
           <p>
-            <strong>Languages:</strong> {selectedLanguages.join(", ")}
+            <strong>Languages:</strong> {agentInfo.language.join(", ")}.
           </p>
         </div>
       </div>

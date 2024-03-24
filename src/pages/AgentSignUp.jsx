@@ -20,10 +20,9 @@ export default function AgentSignUp() {
     password: "",
     phoneNumber: "+212",
     selectedCities: [],
-    selectedLanguages: [],
   }); 
     const [emailError, setEmailError] = useState("");
-      const [phoneNumberError, setPhoneNumberError] = useState("");
+    const [phoneNumberError, setPhoneNumberError] = useState("");
 
     const [passwordError, setPasswordError] = useState("");
     const MoroccanCities = [
@@ -61,7 +60,6 @@ export default function AgentSignUp() {
       "Tiznit",
     ];
 
-  const languages = ["English", "French", "Arabic", "Spanish", "Tamazight"];
 
 
     const isValidMoroccanPhoneNumber = (number) => {
@@ -77,7 +75,6 @@ export default function AgentSignUp() {
     password,
     phoneNumber,
     selectedCities,
-    selectedLanguages
   } = formData;
   const navigate = useNavigate()
   function onChange(e) {
@@ -100,16 +97,6 @@ const onCityChange = (selectedOptions) => {
 };
 
 
- const onLanguageChange = (selectedOptions) => {
-   if (selectedOptions.length > 4) {
-     return;
-   }
-
-   setFormData((prevState) => ({
-     ...prevState,
-     selectedLanguages: selectedOptions.map((option) => option.value),
-   }));
- };
 
 const onPhoneNumberChange = (e) => {
   const remainingPart = e.target.value.replace(/^\+212/, "");
@@ -173,7 +160,6 @@ const onPhoneNumberChange = (e) => {
       formDataCopy.timestamp = serverTimestamp();
       formDataCopy.status = "pending";
       formDataCopy.selectedCities = selectedCities;
-      formDataCopy.selectedLanguages = selectedLanguages;
 
       // Ensure both operations are atomic
       await Promise.all([
@@ -286,27 +272,7 @@ const onPhoneNumberChange = (e) => {
                 onChange={onCityChange}
               />
             </div>
-            <div className="mt-6">
-              <label
-                htmlFor="selectedLanguages"
-                className="text-md font-medium text-black"
-              ></label>
-              <Select
-                id="selectedLanguages"
-                name="selectedLanguages"
-                placeholder="Select up to 4 languages:"
-                options={languages.map((language) => ({
-                  value: language,
-                  label: language,
-                }))}
-                isMulti
-                value={selectedLanguages.map((language) => ({
-                  value: language,
-                  label: language,
-                }))}
-                onChange={onLanguageChange}
-              />
-            </div>
+
             <input
               type="email"
               id="email"

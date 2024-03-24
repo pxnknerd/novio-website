@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 export default function AgentFinder() {
   const [agents, setAgents] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState(""); // New state for selected language
+  const [language, setLanguage] = useState("");
 
   const [selectedCity, setSelectedCity] = useState(""); // New state for selected city
   const MoroccanCities = [
@@ -78,9 +78,9 @@ export default function AgentFinder() {
       selectedCity === "" ||
       (agent.selectedCities && agent.selectedCities.includes(selectedCity));
     const languageMatch =
-      selectedLanguage === "" ||
-      (agent.selectedLanguages &&
-        agent.selectedLanguages.includes(selectedLanguage));
+      language === "" ||
+      (agent.language &&
+        agent.language.includes(language));
 
     return nameMatch && cityMatch && languageMatch;
   });
@@ -121,8 +121,8 @@ export default function AgentFinder() {
           <div className=" w-full ">
             <p className="mb-1 font-semibold">Language</p>
             <select
-              value={selectedLanguage}
-              onChange={(e) => setSelectedLanguage(e.target.value)}
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
               className="p-2 w-full border border-gray-300 rounded"
             >
               <option value="">All </option>
