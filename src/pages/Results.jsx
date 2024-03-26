@@ -23,11 +23,17 @@ import InputAdornment from "@mui/material/InputAdornment";
 import { IoIosArrowDown } from "react-icons/io";
 import Menu from "@mui/material/Menu";
 
+
 export default function Results() {
   const location = useLocation();
   const initialFilterType = location.state ? location.state.filterType : null;
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  const locations = MoroccanPlaces();
+ const initialSelectedLocation = location.state
+   ? location.state.selectedLocation
+   : null;
+
+ const [selectedLocation, setSelectedLocation] = useState(
+   initialSelectedLocation
+ );  const locations = MoroccanPlaces();
   const [selectedListing, setSelectedListing] = useState(null);
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [selectedLocationCoordinates, setSelectedLocationCoordinates] =
@@ -115,6 +121,17 @@ export default function Results() {
       mapRef.current = null;
     };
   }, [selectedLocationCoordinates]);
+
+useEffect(() => {
+  // Update the map's viewport when the selected location changes
+  if (selectedLocation) {
+    setViewport({
+      latitude: selectedLocation.latitude,
+      longitude: selectedLocation.longitude,
+      zoom: 12,
+    });
+  }
+}, [selectedLocation]);
 
   async function fetchListings() {
     try {
@@ -235,6 +252,7 @@ export default function Results() {
           <Autocomplete
             className="bg-white rounded outline-0 custom-autocomplete"
             options={locations}
+            value={selectedLocation}
             getOptionLabel={(option) => option.name}
             style={{ width: 300 }}
             renderInput={(params) => (

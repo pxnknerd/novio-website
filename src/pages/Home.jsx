@@ -15,7 +15,7 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { FaSearch} from "react-icons/fa";
-
+import LocationSearchAutocomplete from "../components/LocationSearchAutocomplete";
 
 
 
@@ -34,6 +34,7 @@ export default function Home() {
     navigate("/results", { state: { filterType } });
   };
 
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
 
   // places for rent
@@ -145,11 +146,10 @@ export default function Home() {
         <div className="absolute text-center top-1/2 left-1/2 transform -translate-x-1/2">
           <div className="relative">
             <div className="flex sm:mb-20 items-center">
-              <input
-                type="search"
-                className="bg-white border-white h-12 sm:h-14 sm:py-6 w-[20rem] sm:w-[37rem] rounded pl-5 pr-12 placeholder:text-gray-500 placeholder:text-[16px] sm:placeholder:text-[20px] outline-0"
-                placeholder="Address, City, or Neighborhood"
+              <LocationSearchAutocomplete
+                setSelectedLocation={setSelectedLocation}
               />
+
               <div className="absolute right-4 top-0 h-full flex items-center">
                 <FaSearch />
               </div>

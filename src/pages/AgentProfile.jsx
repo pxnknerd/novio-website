@@ -13,7 +13,7 @@ import { Link } from "react-router-dom";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { GrNext, GrPrevious } from "react-icons/gr";
 import ReactMapGL, { Marker } from "react-map-gl";
-
+import Spinner from "../components/Spinner"; 
 
 
 
@@ -160,7 +160,7 @@ const handlePageChange = (page) => {
 
 
   if (!agentInfo) {
-    return <div>Loading agent information...</div>;
+    return <Spinner />;
   }
 
   return (
@@ -182,7 +182,16 @@ const handlePageChange = (page) => {
         </div>
         <div>
           <p className="mt-14 font-semibold text-2xl mb-4">About Me</p>
-          <p className="font-semibold">Specialties: {agentInfo.specialties.join(", ")}.</p>
+          {agentInfo &&
+          agentInfo.specialties &&
+          agentInfo.specialties.length > 0 ? (
+            <p className="font-semibold">
+              Specialties: {agentInfo.specialties.join(", ")}.
+            </p>
+          ) : (
+            <p className="font-semibold">Specialties: --</p>
+          )}
+
           <p>{agentInfo.aboutMe}</p>
         </div>
         <div>
@@ -276,9 +285,11 @@ const handlePageChange = (page) => {
             </button>
           )}
         </div>
+                {agentListings.length > 0 && (
+
         <p className="mt-4 font-semibold text-2xl mb-4">
           Listings Map ({agentListings.length})
-        </p>
+        </p>)}
         {agentListings.length > 0 && (
           <div className="bg-gray-200 h-[400px] mt-4">
             <ReactMapGL
@@ -389,9 +400,17 @@ const handlePageChange = (page) => {
           <p>
             <strong>Member Since:</strong> {memberSince}
           </p>
-          <p>
-            <strong>Languages:</strong> {agentInfo.language.join(", ")}.
-          </p>
+          {agentInfo &&
+          agentInfo.language &&
+          agentInfo.language.length > 0 ? (
+            <p>
+              <strong>Languages:</strong> {agentInfo.language.join(", ")}
+            </p>
+          ) : (
+            <p>
+              <strong>Languages:</strong> --
+            </p>
+          )}
         </div>
       </div>
     </div>

@@ -15,42 +15,47 @@ import { LuParkingSquare } from "react-icons/lu";
 import { MdOutlineConstruction } from "react-icons/md";
 import { FaRulerCombined } from "react-icons/fa6";
 import Moment from "react-moment";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
 import MyPin from "../assets/svg/MyPin.svg";
 import { Link as ScrollLink } from "react-scroll";
 import { IoCallOutline } from "react-icons/io5";
+import ReactMapGL, { Marker, Popup } from "react-map-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 
 export default function Listing() {
   const auth = getAuth();
   const params = useParams();
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
+  
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [contactLandlord, setContactLandlord] = useState(true);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
+const [viewport, setViewport] = useState({
+  latitude: 0,
+  longitude: 0,
+  zoom: 13,
+});
+  
   // Function to toggle the popup state
   const togglePopup = () => {
     setIsPopupOpen(!isPopupOpen);
   };
 
-  const customMarkerIcon = new L.Icon({
-    iconUrl: MyPin, // Assuming it's in the root of the 'public' folder
-    iconSize: [35, 58],
-    iconAnchor: [17.5, 29],
-    popupAnchor: [1, -34],
-    // Optionally, customize other values based on your needs
-  });
 
   useEffect(() => {
     async function fetchListing() {
       const docRef = doc(db, "listings", params.listingId);
       const docSnap = await getDoc(docRef);
     if (docSnap.exists() && docSnap.data().status === "approved") {
-        setListing(docSnap.data());
+const listingData = docSnap.data(); // Corrected variable name
+setListing(listingData);    
+      setViewport({
+            latitude: listingData.latitude,
+            longitude: listingData.longitude,
+            zoom: 13,
+          });
         setLoading(false);
       }
     }
@@ -317,28 +322,40 @@ export default function Listing() {
                 </Moment>
               </p>
               <h1 className="mt-8 text-3xl font-semibold">Location</h1>
-              <div className="mt-4 bg-gray-100 border-4 border-gray-300 h-[250px] rounded-lg">
-                {listing.latitude && listing.longitude && (
-                  <MapContainer
-                    center={[listing.latitude, listing.longitude]}
-                    zoom={13}
-                    style={{ height: "100%", width: "100%", zIndex: 1 }}
-                    zoomControl={false} // Disable zoom controls
+              <div className="mt-4 bg-gray-100 border-4 border-gray-300 h-[400px] rounded-lg">
+                <ReactMapGL
+                  {...viewport}
+                  width="100%"
+                  height="100%"
+                  mapStyle="mapbox://styles/mapbox/streets-v11"
+                  onViewportChange={setViewport}
+                  mapboxApiAccessToken={
+                    process.env.REACT_APP_MAPBOX_ACCESS_TOKEN
+                  }
+                >
+                  <Marker
+                    latitude={listing.latitude}
+                    longitude={listing.longitude}
+                    offsetLeft={-20}
+                    offsetTop={-10}
                   >
-                    <TileLayer
-                      url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}.png"
-                      minZoom={14}
-                      maxZoom={20}
-                      attribution='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    <img
+                      src={MyPin}
+                      alt="Pin"
+                      style={{ width: "40px", height: "40px" }}
                     />
-                    <Marker
-                      position={[listing.latitude, listing.longitude]}
-                      icon={customMarkerIcon}
+                  </Marker>
+                  {isPopupOpen && (
+                    <Popup
+                      latitude={listing.latitude}
+                      longitude={listing.longitude}
+                      onClose={togglePopup}
+                      closeOnClick={false}
                     >
-                      <Popup>{listing.address}</Popup>
-                    </Marker>
-                  </MapContainer>
-                )}
+                      {listing.address}
+                    </Popup>
+                  )}
+                </ReactMapGL>
               </div>
             </div>
           </div>
@@ -508,28 +525,37 @@ export default function Listing() {
               id="contactSection"
               className="mt-4 bg-gray-100 border-4 border-gray-300 h-[250px] rounded-lg"
             >
-              {listing.latitude && listing.longitude && (
-                <MapContainer
-                  center={[listing.latitude, listing.longitude]}
-                  zoom={13}
-                  style={{ height: "100%", width: "100%", zIndex: 1 }}
-                  zoomControl={false} // Disable zoom controls
+              <ReactMapGL
+                {...viewport}
+                width="100%"
+                height="100%"
+                mapStyle="mapbox://styles/mapbox/streets-v11"
+                onViewportChange={setViewport}
+                mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_ACCESS_TOKEN}
+              >
+                <Marker
+                  latitude={listing.latitude}
+                  longitude={listing.longitude}
+                  offsetLeft={-20}
+                  offsetTop={-10}
                 >
-                  <TileLayer
-                    url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}.png"
-                    minZoom={14}
-                    maxZoom={20}
-                    detectRetina={true}
-                    attribution='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  />
-                  <Marker
-                    position={[listing.latitude, listing.longitude]}
-                    icon={customMarkerIcon}
+                  <img
+                    src={MyPin}
+                    alt="Pin"
+                    style={{ width: "40px", height: "40px" }}
+                  />{" "}
+                </Marker>
+                {isPopupOpen && (
+                  <Popup
+                    latitude={listing.latitude}
+                    longitude={listing.longitude}
+                    onClose={togglePopup}
+                    closeOnClick={false}
                   >
-                    <Popup>{listing.address}</Popup>
-                  </Marker>
-                </MapContainer>
-              )}
+                    {listing.address}
+                  </Popup>
+                )}
+              </ReactMapGL>
             </div>
             <h1 className="mt-10  text-xl font-semibold">Contact</h1>
 

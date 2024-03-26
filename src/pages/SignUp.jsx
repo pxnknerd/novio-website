@@ -24,10 +24,7 @@ export default function SignUp() {
   const [emailError, setEmailError] = useState("");
   const [selectedCountryCode, setSelectedCountryCode] = useState("+212");
   const [passwordError, setPasswordError] = useState("");
-  const isValidPhoneNumber = (number) => {
-  const phoneNumberRegex = /^\+\d{1,4}\d{1,14}$/;
-   return phoneNumberRegex.test(number);
- };
+
   const { firstName, lastName, email, phoneNumber, password } = formData;
 
   const handleSignUpAsAgentClick = () => {

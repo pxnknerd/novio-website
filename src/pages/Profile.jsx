@@ -489,7 +489,7 @@ export default function Profile() {
           </div>
 
           {/* My Listings Section */}
-          <div className="mb-4">
+          <div className="mb-4 px-4">
             <div
               className="flex items-center justify-between"
               onClick={() => setIsMyListingsOpen(!isMyListingsOpen)}
@@ -522,7 +522,7 @@ export default function Profile() {
             )}
           </div>
 
-          <div className="flex justify-center sm:justify-start whitespace-nowrap mb-6  ">
+          <div className="flex justify-center sm:justify-start whitespace-nowrap mb-6 px-4 ">
             <p
               onClick={onLogout}
               className="flex items-center gap-1 mt-8 text-lg  capitalize hover:text-gray-300 transition ease-in-out duration-200 cursor-pointer"
